@@ -45,6 +45,167 @@ input:focus{outline:none;border-color:var(--g)}
 .btn{display:block;width:100%;border:0;border-radius:14px;padding:14px;font:inherit;font-size:18px;font-weight:700;color:#fff;background:var(--g);margin-top:12px}
 .err{color:var(--red);font-weight:700;text-align:center;margin-top:10px}
 .msg{text-align:center;color:var(--mut);font-size:13px;margin-top:10px}
+.kv div{display:flex;gap:10px;padding:9px 2px;border-bottom:1px solid #EEF2EF;font-size:14px;line-height:1.6}.kv div:last-child{border:0}.kv b{min-width:110px;flex-shrink:0;color:var(--g)}.kv small{display:block;color:var(--mut);font-size:11px}
+.mem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 2px;border-bottom:1px solid #EEF2EF}.mem:last-child{border:0}.mem b{display:block;font-size:15px}.mem span{font-size:13px;color:var(--mut)}.mem a{color:var(--g);text-decoration:none;font-size:14px;direction:ltr;white-space:nowrap}
+.back{background:none;border:0;color:#fff;font:inherit;font-weight:700;padding:0 2px 10px;font-size:15px}
+.hide{display:none!important}
+.spin{text-align:center;padding:24px;color:var(--mut)}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand"><img class="logo" src="data:image/jpeg;base64,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" alt="شعار الجمعية"><div><b>منصة الأنصار</b><small>جمعية الأنصار بشارونة</small></div></div>
+    <button id="logout" class="hide" onclick="logout()">خروج</button>
+  </div>
+  <div class="hello" id="hello"></div>
+</header>
+<main>
+  <section id="s-login" class="card">
+    <h2 style="color:var(--g);font-size:18px">الدخول للمنصة</h2>
+    <input id="pin" type="password" inputmode="numeric" placeholder="الرقم السري" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn" onclick="doLogin()">دخول</button>
+    <div id="loginErr" class="err"></div>
+    <div class="msg">الرقم السري بتاخده من إدارة الجمعية</div>
+  </section>
+
+  <section id="s-home" class="hide">
+    <div class="card stats" id="stats"><div class="spin" style="grid-column:1/-1">جاري التحميل…</div></div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="card" id="actsCard" style="margin-top:14px">
+      <h2>العطاءات المفتوحة دلوقتي</h2>
+      <div class="acts" id="acts"></div>
+    </div>
+  </section>
+
+  <section id="s-org" class="hide">
+    <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
+    <div class="card"><h2>🏛️ بيانات الجمعية</h2><div class="kv" id="orgInfo"><div class="spin">جاري التحميل…</div></div></div>
+    <div class="card"><h2>👥 مجلس الإدارة</h2><div id="orgBoard"></div></div>
+  </section>
+</main>
+
+<script>
+var API='https://script.google.com/macros/s/AKfycbw4BoO-LLl3CN501okOdRfNuyMJgorbOII_vWyhRJtbsuKvr_4on3gBV_cjD8GcIGcZ3Q/exec';
+var SHEET='https://docs.google.com/spreadsheets/d/15Q7oe1blUl4_Dl7GwTWJRM771LrF_gYnXTN94QsKnuc/edit';
+var LINKS={
+  form:'https://ee.kobotoolbox.org/lvvNAL3z',
+  koboData:'https://kf.kobotoolbox.org/#/forms/aj2LfgU3yMyhxj4QzHWjXa/data/table',
+  sheet:SHEET,
+  acts:SHEET+'#gid=586091644',
+  users:SHEET+'#gid=1784160135'
+};
+var PIN='';
+function $(id){return document.getElementById(id)}
+function store(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
+function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function call(fn,args,ok,fail){
+  fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn:fn,args:args})})
+    .then(function(r){return r.json()})
+    .then(function(j){j.ok?ok(j.data):fail(j.error||'حصل خطأ')})
+    .catch(function(){fail('مفيش اتصال بالنت — حاول تاني')});
+}
+function show(id){['s-login','s-home','s-org'].forEach(function(s){$(s).classList.toggle('hide',s!==id)})}
+
+function doLogin(p){
+  var pin=p||$('pin').value.trim(); $('loginErr').textContent='';
+  if(!p) $('loginErr').innerHTML='<span style="color:var(--mut)">جاري الدخول…</span>';
+  call('home',[pin],function(h){PIN=pin;store('ansar_pin',pin);render(h)},
+    function(m){store('ansar_pin',null);show('s-login');$('loginErr').textContent=m});
+}
+function logout(){PIN='';store('ansar_pin',null);store('ansar_act',null);$('pin').value='';$('hello').textContent='';$('logout').classList.add('hide');show('s-login')}
+
+function tile(href,ic,title,sub,cls,tag){
+  return '<a class="tile '+(cls||'')+'" href="'+href+'"'+(/^https?:/.test(href)?' target="_blank" rel="noopener"':'')+'>'+
+    (tag?'<i class="tag">'+tag+'</i>':'')+'<div class="ic">'+ic+'</div><div><b>'+title+'</b><br><span>'+sub+'</span></div></a>';
+}
+function render(h){
+  show('s-home'); $('logout').classList.remove('hide');
+  $('hello').textContent='أهلاً '+h.name.split(' ')[0]+' — '+h.role;
+  var st=h.status||{};
+  $('stats').innerHTML=
+    '<div class="stat"><b>'+(st['نشط']||0)+'</b><span>أسرة نشطة</span></div>'+
+    '<div class="stat o"><b>'+((st['انتظار']||0)+(st['تحت المراجعة']||0))+'</b><span>انتظار ومراجعة</span></div>'+
+    '<div class="stat"><b>'+(h.today||0)+'</b><span>تسليم النهارده</span></div>';
+  var t='';
+  if(h.canDistribute) t+=tile('../tawzee/','🎁','توزيع العطاءات','اسكان الكارنيه أو الاستمارة وتسجيل التسليم','main');
+  t+=tile(LINKS.form,'📝','البحث الاجتماعي','استمارة البحث — تحديث أو حالة جديدة');
+  if(h.admin){
+    t+=tile(LINKS.koboData,'✅','مراجعة الأبحاث','الاستمارات اللي وصلت من الباحثين');
+    t+=tile(LINKS.acts,'⚙️','إدارة العطاءات','فتح وقفل العطاءات وقواعدها');
+    t+=tile(LINKS.sheet,'📊','قاعدة البيانات','الأسر والتسليمات والكفالات');
+    t+=tile(LINKS.users,'👥','المستخدمين','الحسابات والأرقام السرية');
+  }
+  t+=tile('javascript:openOrg()','🏛️','الجمعية','بيانات الإشهار واللائحة ومجلس الإدارة');
+  t+=tile('#','🤝','الكفالات','كفالات الأسر والمتبرعين','soon','قريباً');
+  t+=tile('#','🌐','الصفحة العامة','إنجازات الجمعية وسوق الخير','soon','قريباً');
+  $('tiles').innerHTML=t;
+  var o=h.open||[];
+  $('actsCard').classList.toggle('hide',!h.canDistribute);
+  $('acts').innerHTML=o.length?o.map(function(a){return '<div><span>'+esc(a.name)+'</span><span><em>'+a.today+'</em> النهارده · '+a.total+' إجمالي</span></div>'}).join(''):'<div><span style="color:var(--mut)">مفيش عطاء مفتوح — افتحه من «إدارة العطاءات»</span></div>';
+}
+function openOrg(){
+  show('s-org'); window.scrollTo(0,0);
+  $('orgInfo').innerHTML='<div class="spin">جاري التحميل…</div>'; $('orgBoard').innerHTML='';
+  call('org',[PIN],function(d){
+    $('orgInfo').innerHTML=d.info.map(function(r){return '<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+(r[2]?'<small>'+esc(r[2])+'</small>':'')+'</span></div>'}).join('')||'<div>مفيش بيانات</div>';
+    $('orgBoard').innerHTML=d.board.map(function(m){return '<div class="mem"><div><b>'+esc(m.name)+'</b><span>'+esc(m.role)+' — '+esc(m.job)+'</span></div>'+(m.phone?'<a href="tel:'+esc(m.phone)+'">📞 '+esc(m.phone)+'</a>':'')+'</div>'}).join('');
+  },function(m){$('orgInfo').innerHTML='<div class="err">'+esc(m)+'</div>'});
+}
+(function(){var p=load('ansar_pin');if(p)doLogin(p);else show('s-login')})();
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>منصة الأنصار</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14713A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:#14713A;--g2:#0E5A2D;--o:#E67E22;--bg:#F4F7F5;--tx:#1D2B22;--mut:#5E6E64;--red:#C0392B;--line:#E2E8E4}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Noto Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:16px}
+header{background:linear-gradient(160deg,var(--g),var(--g2));color:#fff;padding:18px 16px 56px}
+.top{max-width:640px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:50px;height:50px;border-radius:50%;background:#fff;padding:3px;object-fit:contain}
+.brand b{display:block;font-size:19px}.brand small{opacity:.85;font-size:13px}
+header button{background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:10px;padding:8px 12px;font:inherit;font-size:14px}
+.hello{max-width:640px;margin:18px auto 0;font-size:15px;opacity:.95}
+main{max-width:640px;margin:-40px auto 0;padding:0 16px 30px}
+.card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 4px 18px rgba(0,0,0,.07);margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{text-align:center;padding:6px 2px}
+.stat b{display:block;font-size:26px;color:var(--g);line-height:1.2}
+.stat span{font-size:12px;color:var(--mut)}
+.stat.o b{color:var(--o)}
+h2{font-size:16px;margin:4px 2px 10px;color:var(--mut);font-weight:700}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.tile{display:flex;flex-direction:column;gap:6px;background:#fff;border:2px solid var(--line);border-radius:18px;padding:16px 14px;text-decoration:none;color:var(--tx);min-height:118px;position:relative}
+.tile:active{transform:scale(.98)}
+.tile .ic{font-size:30px;line-height:1}
+.tile b{font-size:17px}
+.tile span{font-size:13px;color:var(--mut);line-height:1.5}
+.tile.main{grid-column:1/-1;background:var(--g);border-color:var(--g);color:#fff;flex-direction:row;align-items:center;min-height:auto;gap:14px}
+.tile.main span{color:rgba(255,255,255,.88)}
+.tile.soon{opacity:.55;pointer-events:none}
+.tag{position:absolute;top:10px;left:10px;font-size:11px;background:#FFF4E5;color:#8A4B0B;border-radius:12px;padding:2px 8px}
+.acts div{display:flex;justify-content:space-between;padding:8px 2px;border-bottom:1px solid #EEF2EF;font-size:15px}
+.acts div:last-child{border:0}
+.acts em{font-style:normal;color:var(--g);font-weight:700}
+input{width:100%;font:inherit;font-size:20px;padding:12px 14px;border:2px solid #CFD8D2;border-radius:12px;direction:ltr;text-align:center}
+input:focus{outline:none;border-color:var(--g)}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:14px;font:inherit;font-size:18px;font-weight:700;color:#fff;background:var(--g);margin-top:12px}
+.err{color:var(--red);font-weight:700;text-align:center;margin-top:10px}
+.msg{text-align:center;color:var(--mut);font-size:13px;margin-top:10px}
 .hide{display:none!important}
 .spin{text-align:center;padding:24px;color:var(--mut)}
 </style>
