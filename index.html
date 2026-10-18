@@ -100,7 +100,7 @@ section{padding:64px 0 10px}
 .contact{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .posts{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;width:100%}.post{background:#fff;border:1px solid var(--line);border-radius:20px;padding:10px;max-width:100%;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:8px}.post iframe{display:block;border:0;max-width:100%}.post a{color:var(--g2);font-size:14px;font-weight:700;text-decoration:none}
 .pcard{display:flex;flex-direction:column;align-items:center;gap:4px;width:200px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 12px;text-decoration:none;text-align:center}.pcard .pic{font-size:30px;width:56px;height:56px;border-radius:50%;background:var(--g3);display:grid;place-items:center}.pcard b{color:var(--g);font-size:16px}.pcard span:last-child{color:var(--mut);font-size:13px}
-.posts{gap:8px}.pcard{flex-direction:row;width:auto;gap:8px;padding:7px 14px 7px 10px;border-radius:30px}.pcard .pic{width:30px;height:30px;font-size:15px}.pcard b{font-size:14px}.pcard span:last-child{display:none}.post iframe{width:320px!important;height:420px!important}
+.posts{gap:8px}.pcard{flex-direction:row;width:auto;gap:8px;padding:7px 14px 7px 10px;border-radius:30px}.pcard .pic{width:30px;height:30px;font-size:15px}.pcard b{font-size:14px}.pcard span:last-child{display:none}.pcard{max-width:100%}.pcard b{white-space:normal;text-align:right;line-height:1.5}.post iframe{width:320px!important;height:420px!important}
 footer{margin-top:64px;background:#0A3A20;color:rgba(255,255,255,.75);padding:26px 0;font-size:14px}
 footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
 footer a{color:var(--gold2)}
@@ -199,21 +199,21 @@ footer a{color:var(--gold2)}
   <a class="fbbtn" href="https://www.facebook.com/profile.php?id=100079591489815" target="_blank" rel="noopener">تابع صفحتنا على فيسبوك ←</a></div>
 </div></section>
 <script>
-/* بوستات فيسبوك — أضف لينك البوست في القايمة دي */
+/* بوستات فيسبوك — كل سطر: [لينك البوست, العنوان] */
 var FB_POSTS=[
- 'https://www.facebook.com/share/p/19gBzDuzNo/',
- 'https://www.facebook.com/share/p/1EvJYDp2qN/',
- 'https://www.facebook.com/share/p/1Jyohf3gFj/',
- 'https://www.facebook.com/share/p/1Jrz5XSQhN/',
- 'https://www.facebook.com/share/p/19d4QLQ8Q8/',
- 'https://www.facebook.com/share/p/1Ch4Bk2uQR/',
- 'https://www.facebook.com/share/p/19wkTP74qt/'
+ ['https://www.facebook.com/share/p/19gBzDuzNo/','فضل الصحابة'],
+ ['https://www.facebook.com/share/p/1EvJYDp2qN/','عن بر الوالدين'],
+ ['https://www.facebook.com/share/p/1Jyohf3gFj/','الصلاة على النبي ﷺ'],
+ ['https://www.facebook.com/share/p/1Jrz5XSQhN/','توزيع لحوم الأضاحي والعقيقة'],
+ ['https://www.facebook.com/share/p/19d4QLQ8Q8/','حصاد مشروع يوم عرفة'],
+ ['https://www.facebook.com/share/p/1Ch4Bk2uQR/','شكر وتقدير للمشاركين في البث المباشر لوجبة الخير'],
+ ['https://www.facebook.com/share/p/19wkTP74qt/','حصاد مشروع وجبة الخير 1447هـ']
 ];
 (function(){var box=document.getElementById('posts');
 /* لينكات المشاركة (share/p) مش بتتعرض جوه المواقع — بنعرضها كروت بتفتح البوست على فيسبوك */
-box.innerHTML=FB_POSTS.map(function(u,i){var emb=/\/posts\/|story_fbid|\/videos\/|\/photo/.test(u);
+box.innerHTML=FB_POSTS.map(function(p,i){var u=p[0],t=p[1];var emb=/\/posts\/|story_fbid|\/videos\/|\/photo/.test(u);
  if(emb){var w=320;return '<div class="post"><iframe loading="lazy" width="'+w+'" height="420" style="width:'+w+'px;height:420px" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" src="https://www.facebook.com/plugins/post.php?href='+encodeURIComponent(u)+'&show_text=true&width='+w+'"></iframe><a href="'+u+'" target="_blank" rel="noopener">افتح البوست على فيسبوك ↗</a></div>'}
- return '<a class="pcard" href="'+u+'" target="_blank" rel="noopener"><span class="pic">📷</span><b>لقطة '+(i+1)+'</b><span>شاهدها على صفحتنا في فيسبوك ↗</span></a>'}).join('');})();
+ return '<a class="pcard" href="'+u+'" target="_blank" rel="noopener"><span class="pic">📷</span><b>'+t+'</b><span>شاهدها على صفحتنا في فيسبوك ↗</span></a>'}).join('');})();
 </script>
 
 <section id="member"><div class="wrap">
