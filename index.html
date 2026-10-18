@@ -1,1 +1,243 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=app/"><title>جمعية الأنصار بشارونة</title></head><body><a href="app/">منصة الأنصار</a></body></html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>جمعية الأنصار بشارونة</title>
+<meta name="description" content="جمعية الأنصار بشارونة — مركز مغاغة، المنيا. مشهرة برقم 2379 لسنة 2012. وجبة الخير، الكفالات الشهرية، توصيل المياه، تجديد المنازل، والإعانات.">
+<meta name="theme-color" content="#0F4D2C">
+<meta property="og:title" content="جمعية الأنصار بشارونة">
+<meta property="og:description" content="16 عامًا من العطاء — وجبة الخير والكفالات والإعانات لأهالي شارونة">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;800&family=Reem+Kufi:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:#0F4D2C;--g2:#14713A;--g3:#E8F2EC;--gold:#C9A227;--gold2:#F6EBC8;--tx:#1B2A21;--mut:#5C6B62;--bg:#FBFAF6;--line:#E6E2D6}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Noto Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:17px;line-height:1.8}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+h1,h2,h3{font-family:'Reem Kufi','Noto Sans Arabic',sans-serif;line-height:1.35;margin:0}
+/* nav */
+nav{position:sticky;top:0;z-index:5;background:rgba(15,77,44,.96);backdrop-filter:blur(6px)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;gap:10px}
+.nb{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:800;font-size:16px}
+.nb img{width:38px;height:38px;border-radius:50%;background:#fff;padding:2px}
+.nl{display:flex;gap:18px}
+.nl a{color:rgba(255,255,255,.85);text-decoration:none;font-size:15px}
+.nl a:hover{color:#fff}
+.staff{background:rgba(255,255,255,.14);color:#fff;text-decoration:none;font-size:14px;padding:7px 12px;border-radius:10px;white-space:nowrap}
+/* hero */
+.hero{background:radial-gradient(120% 90% at 85% 0%,#1C7A45 0%,var(--g) 55%,#0A3A20 100%);color:#fff;padding:56px 0 90px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:auto -10% -40px -10%;height:80px;background:var(--bg);border-radius:50% 50% 0 0/100% 100% 0 0}
+.hero .wrap{display:grid;grid-template-columns:1.3fr .7fr;gap:30px;align-items:center}
+.reg{display:inline-block;border:1px solid rgba(201,162,39,.6);color:var(--gold2);border-radius:20px;padding:3px 14px;font-size:13px;margin-bottom:16px}
+.hero h1{font-size:46px;font-weight:700}
+.hero h1 span{color:var(--gold)}
+.hero p{font-size:19px;opacity:.92;max-width:560px;margin:14px 0 26px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:14px;padding:13px 22px;font-weight:800;text-decoration:none;font-size:17px}
+.btn.gold{background:var(--gold);color:#1F1703}
+.btn.ghost{border:2px solid rgba(255,255,255,.5);color:#fff}
+.seal{justify-self:center;width:230px;height:230px;border-radius:50%;background:#fff;padding:12px;box-shadow:0 0 0 10px rgba(255,255,255,.08),0 0 0 22px rgba(255,255,255,.04)}
+.seal img{width:100%;height:100%;object-fit:contain;border-radius:50%}
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:-40px;position:relative;z-index:2}
+.st{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 12px;text-align:center;box-shadow:0 8px 24px rgba(15,77,44,.06)}
+.st b{display:block;font-family:'Reem Kufi',sans-serif;font-size:34px;color:var(--g2);line-height:1.2}
+.st span{font-size:14px;color:var(--mut)}
+section{padding:64px 0 10px}
+.eyebrow{color:var(--gold);font-weight:800;font-size:14px;letter-spacing:.5px}
+.sh{font-size:32px;color:var(--g);margin:4px 0 10px}
+.lead{color:var(--mut);max-width:680px;margin:0 0 26px}
+/* programs */
+.progs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pg{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px}
+.pg .ic{width:52px;height:52px;border-radius:14px;background:var(--g3);display:grid;place-items:center;font-size:26px;margin-bottom:12px}
+.pg h3{font-size:21px;color:var(--g);margin-bottom:6px}
+.pg p{margin:0;color:var(--mut);font-size:15.5px}
+/* story */
+.story{background:var(--g);color:#fff;border-radius:28px;padding:40px;display:grid;grid-template-columns:1fr 1fr;gap:34px;position:relative;overflow:hidden}
+.story::before{content:"☾";position:absolute;left:-10px;top:-40px;font-size:220px;color:rgba(201,162,39,.12);line-height:1}
+.story .eyebrow{color:var(--gold)}
+.story h2{font-size:30px;margin:6px 0 12px}
+.story p{opacity:.9;margin:0 0 12px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:center;position:relative}
+.fact{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px}
+.fact b{display:block;font-family:'Reem Kufi',sans-serif;font-size:28px;color:var(--gold)}
+.fact span{font-size:14px;opacity:.85}
+.quote{grid-column:1/-1;font-family:'Reem Kufi',sans-serif;font-size:20px;color:var(--gold2);border-top:1px solid rgba(255,255,255,.15);padding-top:16px;margin-top:4px}
+/* help */
+.helps{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.hp{background:#fff;border:2px solid var(--line);border-radius:20px;padding:22px;display:flex;flex-direction:column}
+.hp.main{border-color:var(--gold);background:linear-gradient(180deg,#FFFCF2,#fff)}
+.hp h3{font-size:21px;color:var(--g)}
+.hp p{color:var(--mut);font-size:15.5px;flex:1}
+.hp a{align-self:flex-start;background:var(--g);color:#fff;text-decoration:none;border-radius:12px;padding:10px 16px;font-weight:800;font-size:15px}
+.pay{margin-top:16px;background:var(--gold2);border-radius:16px;padding:14px 18px;font-size:15px;color:#5A4708}
+/* member */
+.member{background:#fff;border:1px solid var(--line);border-radius:24px;padding:30px;display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:center}
+.member blockquote{margin:0;font-size:17px}
+.member .end{font-family:'Reem Kufi',sans-serif;color:var(--g2);font-size:20px;margin-top:10px}
+.terms{background:var(--g3);border-radius:18px;padding:18px}
+.terms li{margin-bottom:4px;font-size:15px}
+/* about */
+.about{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ab{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px}
+.ab h3{font-size:19px;color:var(--g);margin-bottom:10px}
+.ab dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15.5px}
+.ab dt{color:var(--mut)}
+.ab dd{margin:0;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips span{background:var(--g3);color:var(--g);border-radius:20px;padding:4px 12px;font-size:14px}
+/* contact */
+.contact{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ct{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;text-align:center;text-decoration:none}
+.ct .ic{font-size:28px}
+.ct b{display:block;color:var(--g);font-size:18px;direction:ltr}
+.ct span{color:var(--mut);font-size:14px}
+footer{margin-top:64px;background:#0A3A20;color:rgba(255,255,255,.75);padding:26px 0;font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+footer a{color:var(--gold2)}
+@media(max-width:820px){
+  .nl{display:none}
+  .hero{padding:36px 0 80px}
+  .hero .wrap{grid-template-columns:1fr;text-align:center}
+  .hero p{margin-inline:auto}
+  .cta{justify-content:center}
+  .seal{width:150px;height:150px;grid-row:1}
+  .hero h1{font-size:34px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .progs,.helps,.contact,.about{grid-template-columns:1fr}
+  .story,.member{grid-template-columns:1fr;padding:26px}
+  .sh{font-size:26px}
+}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="nb" href="#"><img src="data:image/webp;base64,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" alt="">جمعية الأنصار بشارونة</a>
+  <div class="nl"><a href="#programs">أنشطتنا</a><a href="#story">وجبة الخير</a><a href="#help">ساهم معنا</a><a href="#about">عن الجمعية</a><a href="#contact">تواصل</a></div>
+  <a class="staff" href="app/">دخول فريق العمل</a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div>
+    <div class="reg">مشهرة برقم 2379 لسنة 2012 — مديرية التضامن الاجتماعي بالمنيا</div>
+    <h1>معًا نوسّع <span>دائرة الخير</span><br>في شارونة</h1>
+    <p>جمعية أهلية من قلب قرية شارونة — مركز مغاغة، بنوصل لأهالينا الأكثر احتياجًا بوجبة ساخنة وكفالة شهرية ومياه نظيفة وبيت آمن وإعانة وقت الشدة، على أساس بحث اجتماعي دقيق لكل أسرة.</p>
+    <div class="cta"><a class="btn gold" href="#help">ساهم معنا</a><a class="btn ghost" href="#story">حكاية وجبة الخير</a></div>
+  </div>
+  <div class="seal"><img src="data:image/webp;base64,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" alt="شعار جمعية الأنصار بشارونة"></div>
+</div></header>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="st"><b>16</b><span>عامًا من وجبة الخير</span></div>
+    <div class="st"><b>+35,700</b><span>وجبة في رمضان 1447هـ</span></div>
+    <div class="st"><b>+450</b><span>أسرة في قاعدة البيانات</span></div>
+    <div class="st"><b>+50</b><span>كفالة شهرية</span></div>
+  </div>
+</div>
+
+<section id="programs"><div class="wrap">
+  <div class="eyebrow">أنشطتنا</div>
+  <h2 class="sh">خير مستمر طول السنة</h2>
+  <p class="lead">كل أسرة بتوصلها الجمعية عليها بحث اجتماعي ميداني بيتحدث كل سنة، عشان العطاء يروح لمستحقه.</p>
+  <div class="progs">
+    <div class="pg"><div class="ic">🍲</div><h3>وجبة الخير</h3><p>إفطار رمضاني ساخن بيوصل البيوت قبل المغرب كل يوم من رمضان — مستمر من 1432هـ/2011م.</p></div>
+    <div class="pg"><div class="ic">🤝</div><h3>الكفالات الشهرية</h3><p>مبلغ ثابت كل شهر لأسر محتاجة — أرامل ومطلقات ومرضى وأيتام — بيوصلهم بانتظام.</p></div>
+    <div class="pg"><div class="ic">🎁</div><h3>إعانات عينية ومادية</h3><p>زكاة الفطر وشنط رمضان وعطاء يوم عرفة ومساعدات عاجلة للظروف الطارئة على مدار السنة.</p></div>
+    <div class="pg"><div class="ic">💧</div><h3>توصيل المياه</h3><p>توصيل مياه نظيفة للبيوت المحرومة منها — لأن الميّة أساس الكرامة والصحة.</p></div>
+    <div class="pg"><div class="ic">🏠</div><h3>تجديد المنازل وتحسين المعيشة</h3><p>سقف وباب وشباك وترميم لبيت مش آمن، وتحسين مستوى المعيشة للأسرة — بمتابعة من الجمعية لحد ما الشغل يخلص.</p></div>
+    <div class="pg"><div class="ic">📋</div><h3>البحث الاجتماعي</h3><p>فريق باحثين ميدانيين بيزور الأسر ويحدّث بياناتها، وكل أسرة ليها ملف وكارنيه برقم خاص.</p></div>
+  </div>
+</div></section>
+
+<section id="story"><div class="wrap">
+  <div class="story">
+    <div>
+      <div class="eyebrow">رمضان 1447هـ / 2026</div>
+      <h2>حكاية وجبة… صنعتها قلوب</h2>
+      <p>للسنة السادسة عشرة على التوالي، مطبخ شغال 24 ساعة بأمهر شيفات مركز مغاغة، والوجبة بتتغلف ساخنة في أطباق حرارية: أرز أو مكرونة + خضار + مخلل + تمر… إلى جانب اللحوم الطازجة.</p>
+      <p>4 فرق توزيع بتلف على البيوت قبل الإفطار، ونحو 100 مشارك بين طبخ وتغليف وتوزيع وإعلام وإشراف — والوجبات حسب عدد أفراد كل أسرة.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>35,732</b><span>وجبة في 29 يومًا</span></div>
+      <div class="fact"><b>+1,200</b><span>وجبة يوميًا</span></div>
+      <div class="fact"><b>14</b><span>ذبيحة</span></div>
+      <div class="fact"><b>~3,500 كجم</b><span>لحوم طازجة</span></div>
+      <div class="quote">16 عامًا من العطاء… والقادم أفضل بإذن الله</div>
+    </div>
+  </div>
+</div></section>
+
+<section id="help"><div class="wrap">
+  <div class="eyebrow">ساهم معنا</div>
+  <h2 class="sh">خيرك يوصل لمستحقه</h2>
+  <p class="lead">اختار طريقة المساهمة اللي تناسبك، وكلمنا وإحنا نرتب معاك كل التفاصيل.</p>
+  <div class="helps">
+    <div class="hp main"><h3>اكفل أسرة</h3><p>كفالة شهرية ثابتة لأسرة عليها بحث اجتماعي — وبتوصلك متابعة بصرفها.</p><a href="tel:01095671842">كلمنا للكفالة</a></div>
+    <div class="hp"><h3>سهم في وجبة الخير</h3><p>شارك بسهم في ذبائح رمضان أو في تكلفة الوجبات اليومية.</p><a href="tel:01095671842">احجز سهمك</a></div>
+    <div class="hp"><h3>توصيل مياه أو تجديد بيت</h3><p>ساهم في توصيل مياه لبيت محروم منها، أو في ترميم وتجديد بيت أسرة محتاجة — نقدًا أو بمواد بناء بإقرار رسمي من الجمعية.</p><a href="tel:01124028641">ساهم في مشروع</a></div>
+    <div class="hp"><h3>تبرع عام للمشروعات</h3><p>تبرعك العام بيتوجّه لأكتر مشروع محتاج وقتها: وجبات، كفالات، مياه، تجديد بيوت، أو إعانات عاجلة.</p><a href="tel:01124028641">تبرع الآن</a></div>
+  </div>
+  <div class="pay">💳 الدفع الإلكتروني (InstaPay والمحافظ) هيتضاف هنا قريبًا — لحد ما يتفعّل، التبرع بيكون بالتواصل المباشر مع الجمعية أو مندوبها.</div>
+</div></section>
+
+<section id="member"><div class="wrap">
+  <div class="member">
+    <div>
+      <div class="eyebrow">عضوية الجمعية العمومية 2026</div>
+      <h2 class="sh">باب العضوية مفتوح</h2>
+      <blockquote>في إطار تطوير العمل المؤسسي، وتوسيع وتعزيز المشاركة الفعّالة، ودعم مسيرة الجمعية، والاستفادة من الكفاءات والخبرات المجتمعية، تُعلن جمعية الأنصار عن فتح باب الانضمام لعضوية الجمعية العمومية لعام 2026. وتُرحّب الجمعية بانضمام أصحاب الخبرات العلمية والعملية، ومحبي العمل الخيري الراغبين في المشاركة الفعّالة، ودعم مسيرة العمل الخيري المؤسسي وخدمة المجتمع.</blockquote>
+      <div class="end">معًا نوسّع دائرة الخير… ومعًا نبني كيانًا أقوى.</div>
+    </div>
+    <div class="terms">
+      <b>شروط العضوية (من لائحة الجمعية)</b>
+      <ul>
+        <li>حسن السيرة والسلوك</li>
+        <li>السن 18 سنة فأكثر</li>
+        <li>طلب انضمام مع رسم العضوية</li>
+        <li>الاشتراك السنوي 12 جنيهًا</li>
+        <li>القبول بقرار من مجلس الإدارة</li>
+      </ul>
+      <a class="btn gold" style="font-size:15px;padding:10px 16px" href="tel:01124028641">اسأل عن العضوية</a>
+    </div>
+  </div>
+</div></section>
+
+<section id="about"><div class="wrap">
+  <div class="eyebrow">عن الجمعية</div>
+  <h2 class="sh">جمعية الأنصار بشارونة</h2>
+  <div class="about">
+    <div class="ab"><h3>بيانات الإشهار</h3><dl>
+      <dt>رقم القيد</dt><dd>2379 لسنة 2012</dd>
+      <dt>جهة القيد</dt><dd>مديرية التضامن الاجتماعي بالمنيا — إدارة مغاغة</dd>
+      <dt>المقر</dt><dd>قرية شارونة — مركز مغاغة — محافظة المنيا</dd>
+      <dt>القانون</dt><dd>قانون تنظيم ممارسة العمل الأهلي 149 لسنة 2019</dd>
+      <dt>رئيس مجلس الإدارة</dt><dd>د. مصطفى عبدالغني مصطفى</dd>
+      <dt>السنة المالية</dt><dd>من يوليو إلى يونيو</dd>
+    </dl></div>
+    <div class="ab"><h3>مجالات عملنا</h3><div class="chips">
+      <span>المساعدات الاجتماعية</span><span>رعاية الأسرة</span><span>رعاية الطفولة والأمومة</span><span>رعاية الشيخوخة</span><span>ذوي الإعاقة</span><span>الخدمات التعليمية</span><span>الخدمات الصحية</span><span>رعاية المسجونين وأسرهم</span><span>التنمية الاقتصادية</span><span>الخدمات الثقافية والدينية</span><span>حماية البيئة</span>
+    </div></div>
+  </div>
+</div></section>
+
+<section id="contact"><div class="wrap">
+  <div class="eyebrow">تواصل معنا</div>
+  <h2 class="sh">إحنا قريبين منك</h2>
+  <div class="contact">
+    <a class="ct" href="tel:01095671842"><div class="ic">📞</div><b>01095671842</b><span>تليفون الجمعية</span></a>
+    <a class="ct" href="tel:01124028641"><div class="ic">📞</div><b>01124028641</b><span>تليفون الجمعية</span></a>
+    <a class="ct" href="mailto:alansar.sharona@gmail.com"><div class="ic">✉️</div><b style="font-size:15px">alansar.sharona@gmail.com</b><span>البريد الإلكتروني</span></a>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div>© جمعية الأنصار بشارونة — مشهرة برقم 2379 لسنة 2012</div>
+  <div><a href="app/">منصة فريق العمل</a></div>
+</div></footer>
+</body>
+</html>
