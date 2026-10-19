@@ -78,7 +78,8 @@ input:focus{outline:none;border-color:var(--g)}
 #pr.sign tbody td{height:9mm}#pr td.sig{min-width:32mm}#pr td.ad{font-size:9pt}
 #pr tr.tot td{background:#F4F8F5;font-weight:700}
 #pr .sum{margin-top:8mm;break-inside:avoid}#pr .sum h3{font-size:12pt;margin:0 0 4px;color:#0E5A2D}#pr .sum table{width:auto;min-width:50%}
-#pr .sigs{display:flex;justify-content:space-around;margin-top:14mm;break-inside:avoid;font-weight:700;text-align:center}#pr .sigs div{min-width:45mm}#pr .sigs i{display:block;font-style:normal;border-top:1px dotted #000;margin-top:14mm;padding-top:2px;font-weight:400;font-size:9pt}
+#pr th.hx{background:none;border:0;padding:0 0 4px;font-weight:400;text-align:right;font-size:10.5pt}#pr td.fx{border:0;padding:4mm 0 0;height:auto!important}#pr tfoot{display:table-footer-group}
+#pr .sigs{display:flex;justify-content:space-around;font-weight:700;text-align:center;font-size:10pt}#pr .sigs div{min-width:45mm}#pr .sigs i{display:block;font-style:normal;border-top:1px dotted #000;margin-top:9mm;padding-top:2px;font-weight:400;font-size:8.5pt}
 @page{margin:9mm;@bottom-center{content:"صفحة " counter(page) " من " counter(pages);font-size:9pt}}
 </style>
 </head>
@@ -151,7 +152,7 @@ input:focus{outline:none;border-color:var(--g)}
       <h2>📄 شكل الكشف</h2>
       <div class="f"><label class="l">الأعمدة</label><div class="chips" id="pCols"></div></div>
       <div class="f2"><div class="f"><label class="l">اتجاه الورقة</label><select id="pOr"><option value="landscape">بالعرض</option><option value="portrait">بالطول</option></select></div>
-        <div class="f"><label class="l">التوقيعات آخر الكشف</label><input id="pSigs" class="tx" value="المسؤول عن التوزيع، رئيس مجلس الإدارة"></div></div>
+        <div class="f"><label class="l">التوقيعات تحت كل صفحة (افصل بينهم بفاصلة)</label><input id="pSigs" class="tx" value="المسؤول عن التوزيع، رئيس مجلس الإدارة"></div></div>
       <label class="ck"><input type="checkbox" id="pPer" checked> كل منطقة في صفحة لوحدها</label>
       <label class="ck"><input type="checkbox" id="pSumT" checked> ملخص في الآخر (عدد الأسر والإجمالي لكل منطقة)</label>
     </div>
@@ -323,6 +324,8 @@ function pPrint(){
     case 'dt':return '<td class="c">'+esc(r.dt)+'</td>';case 'by':return '<td>'+esc(r.by)+'</td>';case 'sig':return '<td class="sig"></td>'}}
   var vH=hasV?'القيمة'+(unit?' ('+esc(unit)+')':''):'';
   var head='<tr>'+C.map(function(c){return '<th>'+(c[0]==='v'?vH:c[1])+'</th>'}).join('')+'</tr>';
+  var sg=$('pSigs').value.split(/[،,]/).map(function(x){return x.trim()}).filter(String);
+  var sgH=sg.length?'<div class="sigs">'+sg.map(function(x){return '<div>'+esc(x)+'<i>الاسم والتوقيع</i></div>'}).join('')+'</div>':'';
   var n=0,html=G.map(function(g){
     var sub=0;if(per)n=0;
     var body=g.r.map(function(r){n++;if(!isNaN(r.v)&&r.v!=='')sub+=Number(r.v);return '<tr>'+C.map(function(c){return cell(c[0],r,n)}).join('')+'</tr>'}).join('');
@@ -333,8 +336,9 @@ function pPrint(){
     if(actN&&src!=='all'&&src!=='kf')meta.push('<span><b>العطاء:</b> '+esc(actN)+'</span>');
     if($('pVM').value==='tier')meta.push('<span><b>القيمة:</b> حتى '+esc($('pT1').value)+' أفراد '+fv(nm($('pV1').value))+' · حتى '+esc($('pT2').value)+' '+fv(nm($('pV2').value))+' · أكتر '+fv(nm($('pV3').value))+' '+esc(unit)+'</span>');
     meta.push('<span><b>عدد الأسر:</b> '+g.r.length+'</span>');
-    return '<div class="pg"><div class="ph"><img src="'+logo+'" alt=""><div class="t"><div class="o">جمعية الأنصار بشارونة — مشهرة برقم 2379 لسنة 2012</div><h1>'+esc(title)+'</h1></div><div class="d">التاريخ: '+ds+'<br>طُبع بواسطة: '+esc(PD.by)+'</div></div>'+
-      '<div class="meta">'+meta.join('')+'</div><table><thead>'+head+'</thead><tbody>'+body+foot+'</tbody></table></div>'}).join('');
+    var top='<tr><th class="hx" colspan="'+C.length+'"><div class="ph"><img src="'+logo+'" alt=""><div class="t"><div class="o">جمعية الأنصار بشارونة — مشهرة برقم 2379 لسنة 2012</div><h1>'+esc(title)+'</h1></div><div class="d">التاريخ: '+ds+'<br>طُبع بواسطة: '+esc(PD.by)+'</div></div><div class="meta">'+meta.join('')+'</div></th></tr>';
+    var sgf=sgH?'<tfoot><tr><td class="fx" colspan="'+C.length+'">'+sgH+'</td></tr></tfoot>':'';
+    return '<div class="pg"><table><thead>'+top+head+'</thead>'+sgf+'<tbody>'+body+foot+'</tbody></table></div>'}).join('');
   var tail='';
   if($('pSumT').checked){
     var S={},tiers=$('pVM').value==='tier',TV=[];
@@ -345,8 +349,7 @@ function pPrint(){
       return '<tr><td>'+esc(k)+'</td><td class="c">'+s.n+'</td>'+TV.map(function(x){return '<td class="c">'+(s.t[x]||0)+'</td>'}).join('')+(hasV?'<td class="c"><b>'+fv(s.v)+'</b></td>':'')+'</tr>'}).join('');
     tail+='<div class="sum"><h3>ملخص الكشف</h3><table><thead><tr><th>المنطقة</th><th>عدد الأسر</th>'+TV.map(function(x){return '<th>أسر '+fv(x)+' '+esc(unit)+'</th>'}).join('')+(hasV?'<th>الإجمالي'+(unit?' ('+esc(unit)+')':'')+'</th>':'')+'</tr></thead><tbody>'+rows+
       '<tr class="tot"><td>الإجمالي</td><td class="c">'+T.n+'</td>'+TV.map(function(x){return '<td class="c">'+(T.t[x]||0)+'</td>'}).join('')+(hasV?'<td class="c">'+fv(T.v)+'</td>':'')+'</tr></tbody></table></div>'}
-  var sg=$('pSigs').value.split(/[،,]/).map(function(x){return x.trim()}).filter(String);
-  if(sg.length)tail+='<div class="sigs">'+sg.map(function(x){return '<div>'+esc(x)+'<i>الاسم والتوقيع</i></div>'}).join('')+'</div>';
+  if(tail&&sgH)tail+='<div style="margin-top:10mm">'+sgH+'</div>';
   if(tail)html=html.replace(/<\/div>$/,tail+'</div>');
   var pr=$('pr');pr.className=cs.indexOf('sig')>=0?'sign':'';pr.innerHTML=html;
   var st=$('pgsz')||document.head.appendChild(Object.assign(document.createElement('style'),{id:'pgsz'}));st.textContent='@page{size:A4 '+$('pOr').value+'}';
