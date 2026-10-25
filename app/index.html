@@ -62,6 +62,16 @@ input:focus{outline:none;border-color:var(--g)}
 .sumbar{position:sticky;bottom:10px;z-index:3}
 .sumbar #pSum{font-size:15px;text-align:center;line-height:1.7}.sumbar #pSum b{color:var(--g);font-size:18px}
 .ck{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:4px}.ck input{width:20px;height:20px}
+.rq{display:flex;gap:8px;margin-bottom:10px}.rq .tx{flex:1}
+.rf{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+.rc{background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:10px}
+.rc .h{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.rc .h b{font-size:16px}.rc .h small{color:var(--mut);font-size:12px;white-space:nowrap}
+.rc .m{font-size:13px;color:var(--mut);margin:3px 0 8px;line-height:1.6}
+.badge{display:inline-block;font-size:12px;border-radius:12px;padding:2px 9px;font-weight:700}.badge.ok{background:#E3F4EA;color:var(--g)}.badge.no{background:#FDEDEC;color:var(--red)}
+.ra{display:flex;gap:8px;flex-wrap:wrap}.ra a,.ra button{flex:1;min-width:120px;text-align:center;text-decoration:none;font:inherit;font-size:14px;font-weight:700;border-radius:12px;padding:9px 10px;border:2px solid var(--g);color:var(--g);background:#fff}
+.ra .p{background:var(--g);color:#fff}
+.le{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}.le textarea{width:100%;font:inherit;font-size:15px;padding:10px;border:2px solid #CFD8D2;border-radius:12px;direction:ltr;min-height:64px}
+.le .msg{text-align:right;margin-top:6px}
 #pr{display:none}
 @media print{body{background:#fff}header,main{display:none!important}#pr{display:block}}
 #pr{font-family:'Noto Sans Arabic',sans-serif;color:#000;font-size:10.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -115,6 +125,15 @@ input:focus{outline:none;border-color:var(--g)}
     <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
     <div class="card"><h2>🏛️ بيانات الجمعية</h2><div class="kv" id="orgInfo"><div class="spin">جاري التحميل…</div></div></div>
     <div class="card"><h2>👥 مجلس الإدارة</h2><div id="orgBoard"></div></div>
+  </section>
+  <section id="s-res" class="hide">
+    <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
+    <div class="card"><h2>📋 الأبحاث</h2>
+      <div class="rq"><input id="rQ" class="tx" placeholder="دوّر برقم الملف أو الاسم أو الباحث" oninput="rDraw()"></div>
+      <div class="rf chips" id="rF"><label class="chip"><input type="radio" name="rf" value="all" checked onchange="rDraw()"><span>الكل</span></label><label class="chip"><input type="radio" name="rf" value="no" onchange="rDraw()"><span>ناقص لوكيشن</span></label><label class="chip"><input type="radio" name="rf" value="ok" onchange="rDraw()"><span>فيه لوكيشن</span></label></div>
+      <div id="rSum" class="msg" style="text-align:right;margin:0"></div>
+    </div>
+    <div id="rList"><div class="spin">جاري تحميل الأبحاث من كوبو…</div></div>
   </section>
   <section id="s-print" class="hide">
     <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
@@ -183,7 +202,7 @@ function call(fn,args,ok,fail){
     .then(function(j){j.ok?ok(j.data):fail(j.error||'حصل خطأ')})
     .catch(function(){fail('مفيش اتصال بالنت — حاول تاني')});
 }
-function show(id){['s-login','s-home','s-org','s-print'].forEach(function(s){$(s).classList.toggle('hide',s!==id)})}
+function show(id){['s-login','s-home','s-org','s-print','s-res'].forEach(function(s){$(s).classList.toggle('hide',s!==id)})}
 
 function doLogin(p){
   var pin=p||$('pin').value.trim(); $('loginErr').textContent='';
@@ -208,6 +227,7 @@ function render(h){
   var t='';
   if(h.canDistribute) t+=tile('../tawzee/','🎁','توزيع العطاءات','اسكان الكارنيه أو الاستمارة وتسجيل التسليم','main');
   t+=tile(LINKS.form,'📝','البحث الاجتماعي','استمارة البحث — تحديث أو حالة جديدة');
+  if(h.admin||h.role==='باحث')t+=tile('javascript:openRes()','📋','الأبحاث','الأبحاث المسجلة ولوكيشن كل بيت');
   if(h.admin){
     t+=tile(LINKS.koboData,'✅','مراجعة الأبحاث','الاستمارات اللي وصلت من الباحثين');
     t+=tile(LINKS.acts,'⚙️','إدارة العطاءات','فتح وقفل العطاءات وقواعدها');
@@ -231,6 +251,37 @@ function openOrg(){
     $('orgBoard').innerHTML=d.board.map(function(m){return '<div class="mem"><div><b>'+esc(m.name)+'</b><span>'+esc(m.role)+' — '+esc(m.job)+'</span></div>'+(m.phone?'<a href="tel:'+esc(m.phone)+'">📞 '+esc(m.phone)+'</a>':'')+'</div>'}).join('');
   },function(m){$('orgInfo').innerHTML='<div class="err">'+esc(m)+'</div>'});
 }
+/* ===== الأبحاث ===== */
+var RS=null;
+function openRes(){show('s-res');window.scrollTo(0,0);if(RS){rDraw();return}
+  $('rList').innerHTML='<div class="spin">جاري تحميل الأبحاث من كوبو…</div>';
+  call('researches',[PIN],function(d){RS=d.list;rDraw()},function(m){$('rList').innerHTML='<div class="card err">'+esc(m)+'</div>'})}
+function rLoc(r){if(r.loc)return 'https://www.google.com/maps?q='+r.loc.lat+','+r.loc.lng;return r.link||r.famLoc||''}
+function rDraw(){if(!RS)return;var q=$('rQ').value.trim(),f=(document.querySelector('input[name=rf]:checked')||{}).value||'all';
+  var L=RS.filter(function(r){var has=!!rLoc(r);if(f==='no'&&has)return false;if(f==='ok'&&!has)return false;
+    return !q||(r.fn+' '+r.name+' '+r.by).indexOf(q)>=0});
+  var miss=RS.filter(function(r){return !rLoc(r)}).length;
+  $('rSum').textContent=RS.length+' بحث — منهم '+miss+' ناقص لوكيشن'+(L.length!==RS.length?' — ظاهر '+L.length:'');
+  $('rList').innerHTML=L.slice(0,150).map(function(r){var u=rLoc(r);
+    return '<div class="rc" id="rc'+r.id+'"><div class="h"><b>'+esc(r.name||'بدون اسم')+'</b><small>ملف '+esc(r.fn||'—')+'</small></div>'+
+      '<div class="m">'+esc(r.type)+' — '+esc(r.dt)+' — الباحث: '+esc(r.by)+(r.st?' — '+esc(r.st):'')+'<br>'+
+      (u?'<span class="badge ok">📍 فيه لوكيشن'+(r.loc?'':' (لينك)')+'</span>':'<span class="badge no">⚠️ ناقص لوكيشن</span>')+'</div>'+
+      '<div class="ra">'+(u?'<a class="p" href="'+esc(u)+'" target="_blank" rel="noopener">🗺️ افتح على الخريطة</a>':'')+
+      '<button onclick="rEdit('+r.id+')">'+(u?'✏️ عدّل اللوكيشن':'➕ ضيف لوكيشن')+'</button></div><div id="le'+r.id+'"></div></div>'}).join('')||'<div class="card msg">مفيش أبحاث بالبحث ده</div>'}
+function rEdit(id){var b=$('le'+id);if(b.innerHTML){b.innerHTML='';return}
+  b.innerHTML='<div class="le"><textarea id="lt'+id+'" placeholder="الصق لينك جوجل ماب هنا — أو اكتب الإحداثيات: 28.43, 30.81"></textarea>'+
+   '<div class="ra" style="margin-top:8px"><button onclick="rGps('+id+')">📍 موقعي الحالي</button><button class="p" onclick="rSave('+id+')">حفظ</button></div><div class="msg" id="lm'+id+'"></div></div>';
+  $('lt'+id).focus()}
+function rGps(id){var m=$('lm'+id);if(!navigator.geolocation){m.textContent='الموبايل مش بيدعم تحديد الموقع';return}
+  m.textContent='جاري تحديد موقعك…';
+  navigator.geolocation.getCurrentPosition(function(p){$('lt'+id).value=p.coords.latitude.toFixed(6)+', '+p.coords.longitude.toFixed(6);m.textContent='الدقة حوالي '+Math.round(p.coords.accuracy)+' متر — دوس حفظ لو تمام'},
+   function(e){m.textContent='مش قادر أحدد الموقع — اسمح للمتصفح بالوصول للموقع وجرب تاني'},{enableHighAccuracy:true,timeout:20000,maximumAge:0})}
+function rSave(id){var r=RS.filter(function(x){return x.id===id})[0],v=$('lt'+id).value.trim(),m=$('lm'+id);
+  if(!v){m.innerHTML='<span class="err">الصق اللينك أو دوس موقعي الحالي</span>';return}
+  m.textContent='جاري الحفظ في كوبو وملف الأسرة…';
+  call('setLocation',[PIN,id,r.fn,v],function(d){r.loc=d.loc;r.link=d.link;rDraw();
+    var c=$('rc'+id);if(c)c.insertAdjacentHTML('beforeend','<div class="msg" style="color:var(--g);font-weight:700">✅ اتحفظ'+(d.loc?'':' (اللينك اتحفظ — الإحداثيات ما اتقرتش منه)')+'</div>')},
+   function(e){m.innerHTML='<span class="err">'+esc(e)+'</span>'})}
 /* ===== طباعة كشف ===== */
 var PD=null,PDA={},RG_ORD=['بحري','قبلي','شرق','شرق ق','شرق ب','وسط'],GR_ORD=['أ','ب','ج','د'];
 var COLS=[['i','م'],['fn','رقم الملف'],['name','الاسم'],['nid','الرقم القومي'],['nid4','آخر 4 قومي'],['ph','التليفون'],['rg','المنطقة'],['ad','العنوان'],['m','الأفراد'],['gr','التصنيف'],['v','القيمة'],['dt','تاريخ الاستلام'],['by','المسلِّم'],['sig','التوقيع']];
