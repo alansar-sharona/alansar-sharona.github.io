@@ -72,6 +72,12 @@ input:focus{outline:none;border-color:var(--g)}
 .ra .p{background:var(--g);color:#fff}
 .le{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}.le textarea{width:100%;font:inherit;font-size:15px;padding:10px;border:2px solid #CFD8D2;border-radius:12px;direction:ltr;min-height:64px}
 .le .msg{text-align:right;margin-top:6px}
+.fr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 12px;background:#fff;border-radius:14px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer}
+.fr b{font-size:15px}.fr small{display:block;color:var(--mut);font-size:12px;margin-top:2px}.fr .no{font-size:13px;color:var(--g);font-weight:700;white-space:nowrap}
+.st{display:inline-block;font-size:11px;border-radius:10px;padding:1px 8px;margin-right:4px;font-weight:700}.st.a{background:#E3F4EA;color:var(--g)}.st.x{background:#FDEDEC;color:var(--red)}.st.w{background:#FFF4E5;color:#8A4B0B}
+.fd h3{font-size:14px;color:var(--g);margin:14px 2px 6px}.fd h3:first-child{margin-top:0}
+.fd .kv div{padding:7px 2px}.fd .kv b{min-width:120px}
+.dl div{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:7px 2px;border-bottom:1px solid #EEF2EF}
 #pr{display:none}
 @media print{body{background:#fff}header,main{display:none!important}#pr{display:block}}
 #pr{font-family:'Noto Sans Arabic',sans-serif;color:#000;font-size:10.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -125,6 +131,15 @@ input:focus{outline:none;border-color:var(--g)}
     <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
     <div class="card"><h2>🏛️ بيانات الجمعية</h2><div class="kv" id="orgInfo"><div class="spin">جاري التحميل…</div></div></div>
     <div class="card"><h2>👥 مجلس الإدارة</h2><div id="orgBoard"></div></div>
+  </section>
+  <section id="s-fam" class="hide">
+    <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
+    <div class="card"><h2>🔎 بحث عن أسرة</h2>
+      <div class="rq"><input id="fQ" class="tx" placeholder="الاسم أو رقم الملف أو الرقم القومي أو التليفون" onkeydown="if(event.key==='Enter')fFind()"><button class="btn" style="width:auto;margin:0;padding:0 18px;font-size:16px" onclick="fFind()">بحث</button></div>
+      <div id="fSum" class="msg" style="text-align:right;margin:0"></div>
+    </div>
+    <div id="fList"></div>
+    <div id="fCard" class="hide"></div>
   </section>
   <section id="s-res" class="hide">
     <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
@@ -202,7 +217,7 @@ function call(fn,args,ok,fail){
     .then(function(j){j.ok?ok(j.data):fail(j.error||'حصل خطأ')})
     .catch(function(){fail('مفيش اتصال بالنت — حاول تاني')});
 }
-function show(id){['s-login','s-home','s-org','s-print','s-res'].forEach(function(s){$(s).classList.toggle('hide',s!==id)})}
+function show(id){['s-login','s-home','s-org','s-print','s-res','s-fam'].forEach(function(s){$(s).classList.toggle('hide',s!==id)})}
 
 function doLogin(p){
   var pin=p||$('pin').value.trim(); $('loginErr').textContent='';
@@ -227,6 +242,7 @@ function render(h){
   var t='';
   if(h.canDistribute) t+=tile('../tawzee/','🎁','توزيع العطاءات','اسكان الكارنيه أو الاستمارة وتسجيل التسليم','main');
   t+=tile(LINKS.form,'📝','البحث الاجتماعي','استمارة البحث — تحديث أو حالة جديدة');
+  if(h.admin||h.role==='باحث')t+=tile('javascript:openFam()','🔎','بحث عن أسرة','بالاسم أو رقم الملف أو القومي أو التليفون','main');
   if(h.admin||h.role==='باحث')t+=tile('javascript:openRes()','📋','الأبحاث','الأبحاث المسجلة ولوكيشن كل بيت');
   if(h.admin){
     t+=tile(LINKS.koboData,'✅','مراجعة الأبحاث','الاستمارات اللي وصلت من الباحثين');
@@ -251,6 +267,31 @@ function openOrg(){
     $('orgBoard').innerHTML=d.board.map(function(m){return '<div class="mem"><div><b>'+esc(m.name)+'</b><span>'+esc(m.role)+' — '+esc(m.job)+'</span></div>'+(m.phone?'<a href="tel:'+esc(m.phone)+'">📞 '+esc(m.phone)+'</a>':'')+'</div>'}).join('');
   },function(m){$('orgInfo').innerHTML='<div class="err">'+esc(m)+'</div>'});
 }
+/* ===== بحث عن أسرة ===== */
+function openFam(){show('s-fam');window.scrollTo(0,0);$('fCard').classList.add('hide');$('fList').classList.remove('hide');setTimeout(function(){$('fQ').focus()},50)}
+function stB(s){return '<span class="st '+(s==='نشط'?'a':s==='مستبعد'?'x':'w')+'">'+esc(s||'—')+'</span>'}
+function fFind(){var q=$('fQ').value.trim();if(q.length<2){$('fSum').textContent='اكتب حرفين على الأقل';return}
+  $('fCard').classList.add('hide');$('fList').classList.remove('hide');$('fSum').textContent='جاري البحث…';$('fList').innerHTML='';
+  call('famSearch',[PIN,q],function(d){$('fSum').textContent=d.total?('لقيت '+d.total+' أسرة'+(d.total>d.list.length?' — ظاهر أول '+d.list.length+'، دقّق البحث':'')):'مفيش أسرة بالبحث ده';
+    if(d.list.length===1){fOpen(d.list[0].fn);return}
+    $('fList').innerHTML=d.list.map(function(r){return '<div class="fr" onclick="fOpen(\''+esc(r.fn)+'\')"><div><b>'+esc(r.name)+'</b><small>'+esc(r.rg)+' — '+(r.m||'?')+' أفراد'+(r.gr?' — تصنيف '+esc(r.gr):'')+' '+stB(r.st)+'</small></div><span class="no">ملف '+esc(r.fn)+'</span></div>'}).join('')},
+   function(m){$('fSum').innerHTML='<span class="err">'+esc(m)+'</span>'})}
+function fOpen(fn){$('fList').classList.add('hide');var c=$('fCard');c.classList.remove('hide');c.innerHTML='<div class="card spin">جاري تحميل الملف…</div>';
+  call('famGet',[PIN,fn],function(d){var f=d.f;
+    function g(t,keys){var r=keys.map(function(k){var v=f[k[0]];return v?'<div><b>'+k[1]+'</b><span>'+esc(v)+'</span></div>':''}).join('');return r?'<h3>'+t+'</h3><div class="kv">'+r+'</div>':''}
+    var loc=f['اللوكيشن'],ph=(f['الهاتف']||'').replace(/[^\d]/g,'').slice(0,11);
+    var h='<div class="card fd"><div class="h" style="display:flex;justify-content:space-between;gap:8px"><b style="font-size:18px">'+esc(f['اسم_رب_الأسرة'])+'</b><span class="no" style="color:var(--g);font-weight:700">ملف '+esc(f['رقم_الملف'])+'</span></div>'+
+      '<div class="msg" style="text-align:right">'+stB(f['حالة_الملف'])+(f['التصنيف']?' تصنيف '+esc(f['التصنيف']):'')+(f['سبب_الحالة']?' — '+esc(f['سبب_الحالة']):'')+'</div>'+
+      '<div class="ra" style="margin:10px 0">'+(ph?'<a href="tel:'+ph+'">📞 اتصال</a>':'')+(loc?'<a class="p" href="'+esc(/^https?:/.test(loc)?loc:'https://www.google.com/maps?q='+loc)+'" target="_blank" rel="noopener">🗺️ الخريطة</a>':'')+'</div>'+
+      g('بيانات رب الأسرة',[['الرقم_القومي','الرقم القومي'],['الهاتف','التليفون'],['هاتف_بديل','تليفون بديل'],['صاحب_الهاتف_البديل','صاحب البديل'],['عمل_رب_الأسرة','العمل'],['الجنس','الجنس'],['الحالة_الاجتماعية','الحالة الاجتماعية'],['الحالة_الصحية','الحالة الصحية'],['نوع_المرض','نوع المرض'],['وصف_الحالة_الصحية','وصف الحالة']])+
+      g('الأسرة',[['عدد_الأفراد','عدد الأفراد'],['عدد_الأطفال','الأطفال'],['طلاب_المدارس','طلاب مدارس'],['طلاب_الجامعة','طلاب جامعة'],['عدد_المرضى','المرضى']])+
+      g('السكن والعنوان',[['المنطقة','المنطقة'],['منطقة_التوزيع','منطقة التوزيع'],['العنوان_الوصفي','العنوان'],['الشارع_الحارة','الشارع/الحارة'],['علامة_مميزة','علامة مميزة'],['نوع_السكن','نوع السكن'],['قيمة_الإيجار','الإيجار'],['عدد_الغرف','الغرف'],['حالة_المبنى','حالة المبنى'],['السقف','السقف'],['الحوائط','الحوائط'],['المرافق','المرافق'],['كماليات_السكن','كماليات']])+
+      g('الدخل',[['راتب_معاش','راتب/معاش'],['تأمينات','تأمينات'],['مساعدات_الشئون','الشئون'],['حياة_كريمة','حياة كريمة'],['أيتام_أرامل','أيتام/أرامل'],['نفقة','نفقة'],['تكافل_وكرامة','تكافل وكرامة'],['دخل_آخر','دخل آخر'],['مجموع_الإيرادات','مجموع الإيرادات'],['مجموع_الالتزامات','الالتزامات'],['صافي_الدخل','صافي الدخل']])+
+      g('الملف',[['مصدر_الترشيح','مصدر الترشيح'],['اسم_المرشح','المرشِّح'],['رقم_ملف_قريب_مسجل','قريب مسجل'],['تاريخ_آخر_بحث','آخر بحث'],['موعد_البحث_القادم','البحث القادم'],['تاريخ_آخر_تحديث','آخر تحديث'],['ملاحظات','ملاحظات']])+
+      (d.kafala?'<h3>الكفالة</h3><div class="kv"><div><b>كفالة شهرية</b><span>'+esc(d.kafala.amount)+' جنيه</span></div></div>':'')+
+      '<h3>العطاءات ('+d.deliv.length+')</h3><div class="dl">'+(d.deliv.map(function(x){return '<div><span>'+esc(x.act)+'</span><span>'+esc(x.st)+(x.dt?' — '+esc(x.dt):'')+(x.q.trim()?' — '+esc(x.q):'')+'</span></div>'}).join('')||'<div><span class="msg">مفيش</span></div>')+'</div>'+
+      '<button class="btn" style="background:#fff;color:var(--g);border:2px solid var(--g)" onclick="$(\'fCard\').classList.add(\'hide\');$(\'fList\').classList.remove(\'hide\')">→ رجوع للنتايج</button></div>';
+    c.innerHTML=h;window.scrollTo(0,0)},function(m){c.innerHTML='<div class="card err">'+esc(m)+'</div>'})}
 /* ===== الأبحاث ===== */
 var RS=null;
 function openRes(){show('s-res');window.scrollTo(0,0);if(RS){rDraw();return}
