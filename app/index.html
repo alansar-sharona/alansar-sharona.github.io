@@ -277,7 +277,7 @@ function openOrg(){
 }
 /* ===== بحث عن أسرة ===== */
 function openFam(){show('s-fam');window.scrollTo(0,0);$('fCard').classList.add('hide');$('fList').classList.remove('hide');setTimeout(function(){$('fQ').focus()},50)}
-function stB(s){return '<span class="st '+(s==='نشط'?'a':s==='مستبعد'?'x':'w')+'">'+esc(s||'—')+'</span>'}
+function stB(s){return '<span class="st '+(s==='نشط'?'a':s==='مستبعد'||s==='محذوف'?'x':'w')+'">'+esc(s||'—')+'</span>'}
 function fFind(){var q=$('fQ').value.trim();if(q.length<2){$('fSum').textContent='اكتب حرفين على الأقل';return}
   $('fCard').classList.add('hide');$('fList').classList.remove('hide');$('fSum').textContent='جاري البحث…';$('fList').innerHTML='';
   call('famSearch',[PIN,q],function(d){$('fSum').textContent=d.total?('لقيت '+d.total+' أسرة'+(d.total>d.list.length?' — ظاهر أول '+d.list.length+'، دقّق البحث':'')):'مفيش أسرة بالبحث ده';
@@ -291,7 +291,7 @@ function fOpen(fn,okMsg){$('fList').classList.add('hide');var c=$('fCard');c.cla
     var h='<div class="card fd"><div class="h" style="display:flex;justify-content:space-between;gap:8px"><b style="font-size:18px">'+esc(f['اسم_رب_الأسرة'])+'</b><span class="no" style="color:var(--g);font-weight:700">ملف '+esc(f['رقم_الملف'])+'</span></div>'+
       '<div class="msg" style="text-align:right">'+stB(f['حالة_الملف'])+(f['التصنيف']?' تصنيف '+esc(f['التصنيف']):'')+(f['سبب_الحالة']?' — '+esc(f['سبب_الحالة']):'')+'</div>'+
       (okMsg?'<div class="msg" style="color:var(--g);font-weight:700;text-align:right">'+okMsg+'</div>':'')+
-      '<div class="ra" style="margin:10px 0">'+(d.full?'<button onclick="fEdit()">✏️ تعديل البيانات</button>':'')+'<button class="p" onclick="rfOpen(\''+esc(f['رقم_الملف'])+'\')">📝 بحث جديد للأسرة</button></div>'+
+      '<div class="ra" style="margin:10px 0">'+(d.full?'<button onclick="fEdit()">✏️ تعديل البيانات</button>':'')+(ADMIN&&f['حالة_الملف']!=='محذوف'?'<button onclick="fDel()" style="color:var(--red)">🗑 حذف الملف</button>':'')+'<button class="p" onclick="rfOpen(\''+esc(f['رقم_الملف'])+'\')">📝 بحث جديد للأسرة</button></div>'+
       '<div class="msg" style="text-align:right;margin:-4px 0 6px"><a href="'+esc(koboLink(f['رقم_الملف']))+'" target="_blank" rel="noopener" style="color:var(--mut)">أو افتح الاستمارة في كوبو</a></div>'+
       '<div class="ra" style="margin:10px 0">'+(ph?'<a href="tel:'+ph+'">📞 اتصال</a>':'')+(loc?'<a class="p" href="'+esc(/^https?:/.test(loc)?loc:'https://www.google.com/maps?q='+loc)+'" target="_blank" rel="noopener">🗺️ الخريطة</a>':'')+'</div>'+
       g('بيانات رب الأسرة',[['الرقم_القومي','الرقم القومي'],['الهاتف','التليفون'],['هاتف_بديل','تليفون بديل'],['صاحب_الهاتف_البديل','صاحب البديل'],['عمل_رب_الأسرة','العمل'],['الجنس','الجنس'],['الحالة_الاجتماعية','الحالة الاجتماعية'],['الحالة_الصحية','الحالة الصحية'],['نوع_المرض','نوع المرض'],['وصف_الحالة_الصحية','وصف الحالة']])+
@@ -313,9 +313,9 @@ function rfOpen(q){show('s-rf');window.scrollTo(0,0);
   if(q)rfStart()}
 function rfStart(){var q=$('rfQ').value.trim();if(!q){$('rfMsg').innerHTML='<div class="err">اكتب الرقم القومي أو رقم الملف</div>';return}
   $('rfMsg').innerHTML='<div class="msg">جاري جلب بيانات الأسرة…</div>';
-  call('resPrefill',[PIN,q],function(d){RF.ctx=d.ctx;RF.V.qr=q;
+  call('resPrefill',[PIN,q],function(d){RF.ctx=d.ctx;RF.V.qr=q;RF.uuid=rfUid();
     var dr=null;try{dr=JSON.parse(load('ansar_rf_'+(d.ctx.fn||q))||'null')}catch(e){}
-    if(dr){RF.V=dr.V;RF.R=dr.R||{};RF.restored=1}
+    if(dr){RF.V=dr.V;RF.R=dr.R||{};RF.restored=1;if(dr.u)RF.uuid=dr.u}
     else{walk(RSPEC.items,function(f){if(f.pf&&d.pf[f.pf]!=null&&d.pf[f.pf]!==''&&f.k!=='calculate')RF.V[f.n]=String(d.pf[f.pf])})}
     walk(RSPEC.items,function(f){if(f.def&&!f.rep&&(RF.V[f.n]==null||RF.V[f.n]===''))RF.V[f.n]=f.def==='today()'?new Date().toISOString().slice(0,10):f.def});
     rfDraw()},function(m){$('rfMsg').innerHTML='<div class="err">'+esc(m)+'</div>'})}
@@ -358,7 +358,7 @@ function rfImg(inp,n,px){var file=inp.files&&inp.files[0];if(!file)return;var rd
 function rfRefresh(){[].forEach.call(document.querySelectorAll('#rfBody .rff'),function(el){var f=RFF[el.dataset.n],ri=el.dataset.ri,row=ri!=null?((RF.R[f.rep]||[])[ri]||{}):null;
   el.classList.toggle('hide',!rfRel(f,row));if(f.k==='note'){var nt=el.querySelector('.rfnote');if(nt)nt.innerHTML=rfTpl(f.l||'',row)}});
   var z=document.querySelector('#rfBody .rff[data-n="zone"] .chips');if(z){var f=RFF.zone,cur=RF.V.zone||'',L=rfChoices(f);if(z.dataset.rg!==String(RF.V.region)){z.dataset.rg=String(RF.V.region);z.innerHTML=L.map(function(c){return '<label class="chip"><input type="radio" name="rf_zone" value="'+esc(c[0])+'"'+(c[0]===cur?' checked':'')+' data-n="zone" onchange="rfIn(this)"><span>'+esc(c[1])+'</span></label>'}).join('')}}}
-function rfSaveDraft(){store('ansar_rf_'+(RF.ctx.fn||RF.V.qr),JSON.stringify({V:RF.V,R:RF.R}))}
+function rfSaveDraft(){store('ansar_rf_'+(RF.ctx.fn||RF.V.qr),JSON.stringify({V:RF.V,R:RF.R,u:RF.uuid}))}
 function rfCount(p){return Math.max(0,Math.min(20,Number(rfEval(p.count))||0))}
 function rfDraw(){var p=RF.pages[RF.page],h='';
   h+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><b>'+esc(p.l||'')+'</b><small class="msg" style="margin:0">'+(RF.page+1)+' / '+RF.pages.length+'</small></div>'+
@@ -383,18 +383,19 @@ function rfTree(){var T={};
   function put(items,dst,row){items.forEach(function(f){if(f.items)return;if(f.k==='note')return;if(!rfRel(f,row))return;
     var v=f.ctx||f.n==='fn'||f.calc?rfVal(f.n,row):(row?row[f.n]:RF.V[f.n]);if(v==null||v==='')return;dst[f.n]=String(v)})}
   RF.pages.forEach(function(p){if(p.k==='repeat'){var n=rfCount(p);T[p.n]=(RF.R[p.n]||[]).slice(0,n).map(function(r){var o={};put(p.items,o,r||{});return o})}else{var o={};put(p.items,o,null);T[p.n]=o}});return T}
-function rfSubmit(){if(!rfCheck())return;var files=Object.keys(RF.F).map(function(k){return RF.F[k]});
+function rfUid(){try{if(crypto.randomUUID)return crypto.randomUUID()}catch(e){}return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})}
+function rfSubmit(){if(RF.busy||!rfCheck())return;RF.busy=1;[].forEach.call(document.querySelectorAll('#rfBody .sumbar button'),function(b){b.disabled=true});var files=Object.keys(RF.F).map(function(k){return RF.F[k]});
   $('rfErr').innerHTML='<span class="msg">جاري إرسال البحث لكوبو'+(files.length?' مع '+files.length+' صورة':'')+'…</span>';
-  call('resSubmit',[PIN,rfTree(),files,{start:RF.start}],function(d){try{localStorage.removeItem('ansar_rf_'+(RF.ctx.fn||RF.V.qr))}catch(e){}RS=null;
+  call('resSubmit',[PIN,rfTree(),files,{start:RF.start,uuid:RF.uuid}],function(d){try{localStorage.removeItem('ansar_rf_'+(RF.ctx.fn||RF.V.qr))}catch(e){}RS=null;
     $('rfBody').innerHTML='<div class="card" style="text-align:center"><div style="font-size:48px">✅</div><h2 style="color:var(--g)">البحث اتبعت</h2><div class="msg">اتسجل في كوبو باسم '+esc(d.by)+'، وهيظهر في «الأبحاث» مستني اعتماد الإدارة.</div><button class="btn" onclick="openRes()">📋 الأبحاث</button><button class="btn" style="background:#fff;color:var(--g);border:2px solid var(--g)" onclick="show(\'s-home\')">رجوع للمنصة</button></div>'},
-   function(m){$('rfErr').textContent=m})}
+   function(m){RF.busy=0;[].forEach.call(document.querySelectorAll('#rfBody .sumbar button'),function(b){b.disabled=false});$('rfErr').textContent=m+' — لو دوست تاني مش هيتكرر'})}
 
 /* ===== تعديل ملف ===== */
 var FF=null,FE=[['بيانات رب الأسرة',[['اسم_رب_الأسرة','الاسم'],['الرقم_القومي','الرقم القومي','n'],['الهاتف','التليفون','n'],['هاتف_بديل','تليفون بديل','n'],['صاحب_الهاتف_البديل','صاحب البديل'],['عمل_رب_الأسرة','العمل'],['الجنس','الجنس',['','ذكر','انثي']],['الحالة_الاجتماعية','الحالة الاجتماعية',['','متزوج','اعزب','ارمل','مطلق','متوفي']],['الحالة_الصحية','الحالة الصحية',['','معافي','مريض']],['نوع_المرض','نوع المرض',['','مزمن','اعاقه']],['وصف_الحالة_الصحية','وصف الحالة']]],
  ['الأسرة',[['عدد_الأفراد','عدد الأفراد','n'],['عدد_الأطفال','الأطفال','n'],['طلاب_المدارس','طلاب مدارس','n'],['طلاب_الجامعة','طلاب جامعة','n'],['عدد_المرضى','المرضى','n']]],
  ['السكن والعنوان',[['المنطقة','المنطقة',['','بحري','قبلي','شرق','وسط']],['منطقة_التوزيع','منطقة التوزيع',['','بحري','قبلي','شرق ق','شرق ب','وسط']],['العنوان_الوصفي','العنوان'],['الشارع_الحارة','الشارع/الحارة'],['علامة_مميزة','علامة مميزة'],['اللوكيشن','اللوكيشن (لينك أو إحداثيات)'],['نوع_السكن','نوع السكن',['','تمليك','ايجار','بدون']],['قيمة_الإيجار','الإيجار','n'],['عدد_الغرف','الغرف','n'],['حالة_المبنى','حالة المبنى']]],
  ['الدخل',[['راتب_معاش','راتب/معاش','n'],['تأمينات','تأمينات','n'],['مساعدات_الشئون','الشئون','n'],['حياة_كريمة','حياة كريمة','n'],['أيتام_أرامل','أيتام/أرامل','n'],['نفقة','نفقة','n'],['تكافل_وكرامة','تكافل وكرامة','n'],['دخل_آخر','دخل آخر','n'],['مجموع_الالتزامات','الالتزامات','n']]],
- ['الملف',[['حالة_الملف','حالة الملف',['نشط','انتظار','تحت المراجعة','مستبعد']],['التصنيف','التصنيف',['','أ','ب','ج','د']],['سبب_الحالة','سبب الحالة'],['ملاحظات','ملاحظات']]]];
+ ['الملف',[['حالة_الملف','حالة الملف',['نشط','انتظار','تحت المراجعة','مستبعد','محذوف']],['التصنيف','التصنيف',['','أ','ب','ج','د']],['سبب_الحالة','سبب الحالة'],['ملاحظات','ملاحظات']]]];
 function koboLink(fn){var q=encodeURIComponent(fn);return LINKS.form+'?d['+encodeURIComponent('/data/g_file/qr')+']='+q+'&d['+encodeURIComponent('/aj2LfgU3yMyhxj4QzHWjXa/g_file/qr')+']='+q}
 function fEdit(){var f=FF,c=$('fCard');
   var h='<div class="card fd"><div style="display:flex;justify-content:space-between;gap:8px"><b style="font-size:17px">✏️ تعديل ملف '+esc(f['رقم_الملف'])+'</b></div><div class="msg" style="text-align:right">عدّل اللي محتاج بس ودوس حفظ — كل تعديل بيتسجل باسمك</div>'+
@@ -426,8 +427,13 @@ function rDraw(){if(!RS)return;var q=$('rQ').value.trim(),f=(document.querySelec
       (u?'<span class="badge ok">📍 فيه لوكيشن'+(r.loc?'':' (لينك)')+'</span>':'<span class="badge no">⚠️ ناقص لوكيشن</span>')+'</div>'+
       '<div class="ra">'+(u?'<a class="p" href="'+esc(u)+'" target="_blank" rel="noopener">🗺️ افتح على الخريطة</a>':'')+
       '<button onclick="rEdit('+r.id+')">'+(u?'✏️ عدّل اللوكيشن':'➕ ضيف لوكيشن')+'</button></div>'+
-      (ADMIN&&r.vs!=='validation_status_approved'?'<div class="ra" style="margin-top:8px"><button class="p" onclick="rDecide('+r.id+',\'approve\')">✅ اعتماد البحث</button><button onclick="rDecide('+r.id+',\'reject\')">✖ رفض</button></div>':'')+
+      (ADMIN&&r.vs!=='validation_status_approved'?'<div class="ra" style="margin-top:8px"><button class="p" onclick="rDecide('+r.id+',\'approve\')">✅ اعتماد البحث</button><button onclick="rDecide('+r.id+',\'reject\')">✖ رفض</button><button onclick="rDel('+r.id+')" style="color:var(--red)">🗑 حذف (مكرر/غلط)</button></div>':'')+
       '<div id="le'+r.id+'"></div></div>'}).join('')||'<div class="card msg">مفيش أبحاث بالبحث ده</div>'}
+function rDel(id){var c=$('le'+id);if(!confirm('حذف البحث ده نهائي من كوبو؟ استخدمها للبحث المكرر أو اللي اتبعت غلط بس.'))return;
+  c.innerHTML='<div class="msg">جاري الحذف…</div>';
+  call('resDelete',[PIN,id],function(){RS=RS.filter(function(x){return x.id!==id});rDraw()},function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'})}
+function fDel(){var fn=FF['رقم_الملف'],why=prompt('سبب حذف الملف '+fn+'؟ (مثلاً: مكرر، متوفى ومفيش ورثة، انتقل)');if(why==null)return;why=why.trim();if(!why){alert('لازم تكتب السبب');return}
+  call('famDelete',[PIN,fn,why],function(){fOpen(fn,'🗑 الملف اتحذف — اتشال من التوزيع ومن كوبو. لو عايز ترجّعه: تعديل البيانات ← حالة الملف ← نشط')},function(m){alert(m)})}
 function rDecide(id,dec){var r=RS.filter(function(x){return x.id===id})[0],c=$('le'+id);
   if(dec==='approve'&&!confirm('اعتماد البحث ده؟ بياناته هتتكتب في ملف الأسرة'+(r.fn?' '+r.fn:' (حالة جديدة)')+'.'))return;
   if(dec==='reject'&&!confirm('رفض البحث ده؟'))return;
