@@ -297,7 +297,7 @@ function fOpen(fn,okMsg){$('fList').classList.add('hide');var c=$('fCard');c.cla
     var h='<div class="card fd"><div class="h" style="display:flex;justify-content:space-between;gap:8px"><b style="font-size:18px">'+esc(f['اسم_رب_الأسرة'])+'</b><span class="no" style="color:var(--g);font-weight:700">ملف '+esc(f['رقم_الملف'])+'</span></div>'+
       '<div class="msg" style="text-align:right">'+stB(f['حالة_الملف'])+(f['التصنيف']?' تصنيف '+esc(f['التصنيف']):'')+(f['سبب_الحالة']?' — '+esc(f['سبب_الحالة']):'')+'</div>'+
       (okMsg?'<div class="msg" style="color:var(--g);font-weight:700;text-align:right">'+okMsg+'</div>':'')+
-      '<div class="ra" style="margin:10px 0">'+(d.full?'<button onclick="fEdit()">✏️ تعديل البيانات</button>':'')+(ADMIN&&f['حالة_الملف']!=='محذوف'?'<button onclick="fDel()" style="color:var(--red)">🗑 حذف الملف</button>':'')+'<button class="p" onclick="rfOpen(\''+esc(f['رقم_الملف'])+'\')">📝 بحث جديد للأسرة</button></div>'+
+      '<div class="ra" style="margin:10px 0">'+(d.full?'<button onclick="fEdit()">✏️ تعديل البيانات</button>':'')+(ADMIN?'<button onclick="fRenum()">🔢 تغيير رقم الملف</button>':'')+(ADMIN&&f['حالة_الملف']!=='محذوف'?'<button onclick="fDel()" style="color:var(--red)">🗑 حذف الملف</button>':'')+'<button class="p" onclick="rfOpen(\''+esc(f['رقم_الملف'])+'\')">📝 بحث جديد للأسرة</button></div>'+
       '<div class="msg" style="text-align:right;margin:-4px 0 6px"><a href="'+esc(koboLink(f['رقم_الملف']))+'" target="_blank" rel="noopener" style="color:var(--mut)">أو افتح الاستمارة في كوبو</a></div>'+
       '<div class="ra" style="margin:10px 0">'+(ph?'<a href="tel:'+ph+'">📞 اتصال</a>':'')+(loc?'<a class="p" href="'+esc(/^https?:/.test(loc)?loc:'https://www.google.com/maps?q='+loc)+'" target="_blank" rel="noopener">🗺️ الخريطة</a>':'')+'</div>'+
       g('بيانات رب الأسرة',[['الرقم_القومي','الرقم القومي'],['الهاتف','التليفون'],['هاتف_بديل','تليفون بديل'],['صاحب_الهاتف_البديل','صاحب البديل'],['عمل_رب_الأسرة','العمل'],['الجنس','الجنس'],['الحالة_الاجتماعية','الحالة الاجتماعية'],['الحالة_الصحية','الحالة الصحية'],['نوع_المرض','نوع المرض'],['وصف_الحالة_الصحية','وصف الحالة']])+
@@ -324,7 +324,7 @@ function rfStart(){var q=$('rfQ').value.trim();if(!q){$('rfMsg').innerHTML='<div
     if(dr){RF.V=dr.V;RF.R=dr.R||{};RF.restored=1;if(dr.u)RF.uuid=dr.u}
     else{walk(RSPEC.items,function(f){if(f.pf&&d.pf[f.pf]!=null&&d.pf[f.pf]!==''&&f.k!=='calculate')RF.V[f.n]=String(d.pf[f.pf])})}
     walk(RSPEC.items,function(f){if(f.def&&!f.rep&&(RF.V[f.n]==null||RF.V[f.n]===''))RF.V[f.n]=f.def==='today()'?new Date().toISOString().slice(0,10):f.def});
-    rfDraw()},function(m){$('rfMsg').innerHTML='<div class="err">'+esc(m)+'</div>'})}
+    rfDraw();rfNext()},function(m){$('rfMsg').innerHTML='<div class="err">'+esc(m)+'</div>'})}
 function walk(items,cb,rep){items.forEach(function(x){if(x.items)walk(x.items,cb,x.k==='repeat'?x:rep);else cb(x,rep)})}
 var RFF={};(function(){walk(RSPEC.items,function(f,rep){RFF[f.n]=f;f.rep=rep?rep.n:''})})();
 function rfVal(n,row){var f=RFF[n];if(!f){return RF.ctx[n]!=null?RF.ctx[n]:''}
@@ -354,14 +354,18 @@ function rfIn(e){var n=e.dataset.n,ri=e.dataset.ri,f=RFF[n],v;
   if(f.k==='select_multiple')v=[].map.call(document.querySelectorAll('input[name="'+e.name+'"]:checked'),function(x){return x.value}).join(' ');
   else v=String(e.value).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)});
   if(ri!=null){var R=RF.R[f.rep]||(RF.R[f.rep]=[]);(R[ri]||(R[ri]={}))[n]=v}else RF.V[n]=v;
+  if(n==='region')rfNext();
   rfRefresh();rfSaveDraft()}
+function rfNext(){if(RF.ctx.research_type==='update'||!RF.V.region)return;RF.nfn='…';
+  call('resNextFn',[PIN,RF.V.region],function(d){RF.nfn=d.fn;rfRefresh()},function(){RF.nfn=''})}
 function rfGeo(n){var la=$('rf_'+n+'_la').value.trim(),lo=$('rf_'+n+'_lo').value.trim();RF.V[n]=la&&lo?la+' '+lo+' 0 0':'';rfRefresh();rfSaveDraft()}
 function rfGps(n){var m=$('rf_'+n+'_m');if(!navigator.geolocation){m.textContent='الموبايل مش بيدعم تحديد الموقع';return}m.textContent='جاري تحديد موقعك…';
   navigator.geolocation.getCurrentPosition(function(p){$('rf_'+n+'_la').value=p.coords.latitude.toFixed(6);$('rf_'+n+'_lo').value=p.coords.longitude.toFixed(6);RF.V[n]=p.coords.latitude.toFixed(6)+' '+p.coords.longitude.toFixed(6)+' 0 '+Math.round(p.coords.accuracy);m.textContent='الدقة حوالي '+Math.round(p.coords.accuracy)+' متر';rfSaveDraft()},
    function(){m.textContent='مش قادر أحدد الموقع — اسمح للمتصفح بالموقع، أو الصق لينك جوجل ماب تحت'},{enableHighAccuracy:true,timeout:20000,maximumAge:0})}
 function rfImg(inp,n,px){var file=inp.files&&inp.files[0];if(!file)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,px/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
   var b64=c.toDataURL('image/jpeg',0.8).split(',')[1],name=n+'-'+Date.now()+'.jpg';RF.F[n]={name:name,b64:b64,mime:'image/jpeg'};RF.V[n]=name;rfDraw()};im.src=rd.result};rd.readAsDataURL(file)}
-function rfRefresh(){[].forEach.call(document.querySelectorAll('#rfBody .rff'),function(el){var f=RFF[el.dataset.n],ri=el.dataset.ri,row=ri!=null?((RF.R[f.rep]||[])[ri]||{}):null;
+function rfRefresh(){var rg=document.querySelector('#rfBody .rff[data-n="region"]');if(rg){var nb=$('rfNfn');if(!nb){nb=document.createElement('div');nb.id='rfNfn';nb.className='msg rfnote';nb.style.marginTop='8px';rg.appendChild(nb)}nb.style.display=RF.nfn?'':'none';nb.innerHTML=RF.nfn?'🔢 رقم الملف المقترح: <b>'+esc(RF.nfn)+'</b> — بيتأكد (أو تغيّره الإدارة) عند الاعتماد':''}
+  [].forEach.call(document.querySelectorAll('#rfBody .rff'),function(el){var f=RFF[el.dataset.n],ri=el.dataset.ri,row=ri!=null?((RF.R[f.rep]||[])[ri]||{}):null;
   el.classList.toggle('hide',!rfRel(f,row));if(f.k==='note'){var nt=el.querySelector('.rfnote');if(nt)nt.innerHTML=rfTpl(f.l||'',row)}});
   var z=document.querySelector('#rfBody .rff[data-n="zone"] .chips');if(z){var f=RFF.zone,cur=RF.V.zone||'',L=rfChoices(f);if(z.dataset.rg!==String(RF.V.region)){z.dataset.rg=String(RF.V.region);z.innerHTML=L.map(function(c){return '<label class="chip"><input type="radio" name="rf_zone" value="'+esc(c[0])+'"'+(c[0]===cur?' checked':'')+' data-n="zone" onchange="rfIn(this)"><span>'+esc(c[1])+'</span></label>'}).join('')}}}
 function rfSaveDraft(){store('ansar_rf_'+(RF.ctx.fn||RF.V.qr),JSON.stringify({V:RF.V,R:RF.R,u:RF.uuid}))}
@@ -443,13 +447,21 @@ function rDraw(){if(!RS)return;var q=$('rQ').value.trim(),f=(document.querySelec
 function rDel(id){var c=$('le'+id);if(!confirm('حذف البحث ده نهائي من كوبو؟ استخدمها للبحث المكرر أو اللي اتبعت غلط بس.'))return;
   c.innerHTML='<div class="msg">جاري الحذف…</div>';
   call('resDelete',[PIN,id],function(){RS=RS.filter(function(x){return x.id!==id});rDraw()},function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'})}
+function fRenum(){var o=FF['رقم_الملف'],n=prompt('رقم الملف الجديد للأسرة دي (بدل '+o+'):\nبيتغيّر في كل الشيتات (الأفراد، التسليمات، الأبحاث، الكفالات)، والكارنيه القديم هيفضل شغال.','');if(n==null)return;
+  n=n.replace(/[٠-٩]/g,function(x){return '٠١٢٣٤٥٦٧٨٩'.indexOf(x)}).replace(/\D/g,'');if(!n)return;if(!confirm('تغيير رقم الملف من '+o+' إلى '+n+'؟'))return;
+  call('famRenumber',[PIN,o,n],function(d){fOpen(d.fn,'🔢 رقم الملف اتغيّر من '+esc(o)+' إلى '+esc(d.fn)+'. الكارنيه القديم لسه شغال.')},function(m){alert(m)})}
 function fDel(){var fn=FF['رقم_الملف'],why=prompt('سبب حذف الملف '+fn+'؟ (مثلاً: مكرر، متوفى ومفيش ورثة، انتقل)');if(why==null)return;why=why.trim();if(!why){alert('لازم تكتب السبب');return}
   call('famDelete',[PIN,fn,why],function(){fOpen(fn,'🗑 الملف اتحذف — اتشال من التوزيع ومن كوبو. لو عايز ترجّعه: تعديل البيانات ← حالة الملف ← نشط')},function(m){alert(m)})}
 function rDecide(id,dec){var r=RS.filter(function(x){return x.id===id})[0],c=$('le'+id);
-  if(dec==='approve'&&!confirm('اعتماد البحث ده؟ بياناته هتتكتب في ملف الأسرة'+(r.fn?' '+r.fn:' (حالة جديدة)')+'.'))return;
+  if(dec==='approve'&&r.type==='جديد'){c.innerHTML='<div class="msg">جاري تجهيز رقم الملف…</div>';
+    call('resNextFn',[PIN,r.rg],function(d){var n=prompt('حالة جديدة — ده رقم الملف التالي في المنطقة.\nتقدر تغيّره لو عايز ترتيب معين (5 أرقام)، وبعدين دوس OK للاعتماد:',d.fn);
+      if(n==null){c.innerHTML='';return}rGo(id,dec,n.replace(/[٠-٩]/g,function(x){return '٠١٢٣٤٥٦٧٨٩'.indexOf(x)}).replace(/\D/g,''))},function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'});return}
+  if(dec==='approve'&&!confirm('اعتماد البحث ده؟ بياناته هتتكتب في ملف الأسرة '+r.fn+'.'))return;
   if(dec==='reject'&&!confirm('رفض البحث ده؟'))return;
+  rGo(id,dec,'')}
+function rGo(id,dec,nf){var r=RS.filter(function(x){return x.id===id})[0],c=$('le'+id);
   c.innerHTML='<div class="msg">جاري '+(dec==='approve'?'الاعتماد وتحديث ملف الأسرة':'الرفض')+'…</div>';
-  call('resDecide',[PIN,id,dec,''],function(d){r.vs=d.rejected?'validation_status_not_approved':'validation_status_approved';if(d.fn)r.fn=d.fn;rDraw();
+  call('resDecide',[PIN,id,dec,'',nf],function(d){r.vs=d.rejected?'validation_status_not_approved':'validation_status_approved';if(d.fn)r.fn=d.fn;rDraw();
     var cc=$('le'+id)||$('rMsg');if(cc)cc.innerHTML='<div class="msg" style="color:var(--g);font-weight:700">'+(d.rejected?'✖ اترفض':'✅ اتعتمد — '+(d.isNew?'اتعمل ملف جديد رقم '+esc(d.fn):'ملف '+esc(d.fn)+' اتحدّث ('+d.changes+' تعديل)'))+'</div>'},
    function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'})}
 function rEdit(id){var b=$('le'+id);if(b.innerHTML){b.innerHTML='';return}
