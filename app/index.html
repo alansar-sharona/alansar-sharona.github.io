@@ -150,10 +150,17 @@ input:focus{outline:none;border-color:var(--g)}
   </section>
   <section id="s-res" class="hide">
     <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
-    <div class="card"><h2>📋 الأبحاث</h2>
+    <div class="card"><h2>📋 الأبحاث الاجتماعية</h2>
+      <button class="btn" onclick="rfOpen('')" style="margin-top:4px">📝 بحث جديد</button>
+      <div class="msg" style="text-align:right;margin:8px 0 0">📶 في مكان مفيهوش نت؟ اعمل البحث من تطبيق <b>KoboCollect</b> على الموبايل، وهيوصل هنا لوحده أول ما الموبايل يتوصل بالنت. — <a href="" id="rKobo" target="_blank" rel="noopener" style="color:var(--g)">أو افتح استمارة كوبو</a></div>
+    </div>
+    <div class="card">
+      <div class="rf chips" id="rS"></div>
       <div class="rq"><input id="rQ" class="tx" placeholder="دوّر برقم الملف أو الاسم أو الباحث" oninput="rDraw()"></div>
-      <div class="rf chips" id="rF"><label class="chip"><input type="radio" name="rf" value="all" checked onchange="rDraw()"><span>الكل</span></label><label class="chip"><input type="radio" name="rf" value="no" onchange="rDraw()"><span>ناقص لوكيشن</span></label><label class="chip"><input type="radio" name="rf" value="ok" onchange="rDraw()"><span>فيه لوكيشن</span></label></div>
+      <div class="rf chips" id="rF" style="margin-bottom:6px"><label class="chip"><input type="radio" name="rf" value="all" checked onchange="rDraw()"><span>كل اللوكيشنات</span></label><label class="chip"><input type="radio" name="rf" value="no" onchange="rDraw()"><span>ناقص لوكيشن</span></label></div>
       <div id="rSum" class="msg" style="text-align:right;margin:0"></div>
+      <div id="rMsg"></div>
+      <div id="rKd" class="msg" style="text-align:right;margin:6px 0 0"></div>
     </div>
     <div id="rList"><div class="spin">جاري تحميل الأبحاث من كوبو…</div></div>
   </section>
@@ -248,12 +255,11 @@ function render(h){
     '<div class="stat"><b>'+(h.today||0)+'</b><span>تسليم النهارده</span></div>';
   var t='';
   if(h.canDistribute) t+=tile('../tawzee/','🎁','توزيع العطاءات','اسكان الكارنيه أو الاستمارة وتسجيل التسليم','main');
-  if(h.admin||h.role==='باحث')t+=tile('javascript:rfOpen(\'\')','📝','بحث اجتماعي جديد','تحديث أسرة أو حالة جديدة — من المنصة');
-  t+=tile(LINKS.form,'📶','استمارة كوبو','لو مفيش نت استخدم KoboCollect');
-  if(h.admin||h.role==='باحث')t+=tile('javascript:openFam()','🔎','بحث عن أسرة','بالاسم أو رقم الملف أو القومي أو التليفون','main');
-  if(h.admin||h.role==='باحث')t+=tile('javascript:openRes()','📋','الأبحاث','الأبحاث المسجلة ولوكيشن كل بيت');
+  if(h.admin||h.role==='باحث'){
+    t+=tile('javascript:openFam()','🗂️','ملفات الأسر','دوّر على أسرة — اعرض ملفها، عدّل، أو اعمل لها بحث','main');
+    t+=tile('javascript:openRes()','📋','الأبحاث الاجتماعية',h.admin?'بحث جديد — ومراجعة واعتماد الأبحاث':'بحث جديد — وأبحاثك اللي اتبعتت','main');
+  } else t+=tile(LINKS.form,'📶','استمارة البحث','استمارة كوبو');
   if(h.admin){
-    t+=tile(LINKS.koboData,'✅','مراجعة الأبحاث','الاستمارات اللي وصلت من الباحثين');
     t+=tile(LINKS.acts,'⚙️','إدارة العطاءات','فتح وقفل العطاءات وقواعدها');
     t+=tile(LINKS.sheet,'📊','قاعدة البيانات','الأسر والتسليمات والكفالات');
     t+=tile(LINKS.users,'👥','المستخدمين','الحسابات والأرقام السرية');
@@ -411,15 +417,20 @@ function fSave(){var ch={},n=0;[].forEach.call(document.querySelectorAll('#fCard
   call('famSave',[PIN,FF['رقم_الملف'],ch],function(d){fOpen(FF['رقم_الملف'],'✅ اتحفظ '+d.n+' تعديل')},function(m){$('eMsg').innerHTML='<span class="err">'+esc(m)+'</span>'})}
 /* ===== الأبحاث ===== */
 var RS=null,ADMIN=false;
-function openRes(){show('s-res');window.scrollTo(0,0);if(RS){rDraw();return}
+function openRes(){show('s-res');window.scrollTo(0,0);$('rKobo').href=LINKS.form;$('rKd').innerHTML=ADMIN?'<a href="'+LINKS.koboData+'" target="_blank" rel="noopener" style="color:var(--mut)">📦 بيانات كوبو الكاملة (الصور والتصدير)</a>':'';if(RS){rDraw();return}
   $('rList').innerHTML='<div class="spin">جاري تحميل الأبحاث من كوبو…</div>';
   call('researches',[PIN],function(d){RS=d.list;rDraw()},function(m){$('rList').innerHTML='<div class="card err">'+esc(m)+'</div>'})}
 function rLoc(r){if(r.loc)return 'https://www.google.com/maps?q='+r.loc.lat+','+r.loc.lng;return r.link||r.famLoc||''}
+function rSt(r){return r.vs==='validation_status_approved'?'ok':r.vs==='validation_status_not_approved'?'no':'wait'}
+var RSF=null;function rSet(s){RSF=s;rDraw()}
 function rDraw(){if(!RS)return;var q=$('rQ').value.trim(),f=(document.querySelector('input[name=rf]:checked')||{}).value||'all';
-  var L=RS.filter(function(r){var has=!!rLoc(r);if(f==='no'&&has)return false;if(f==='ok'&&!has)return false;
+  var C={wait:0,ok:0,no:0,all:RS.length};RS.forEach(function(r){C[rSt(r)]++});
+  if(!RSF)RSF=C.wait?'wait':'all';
+  $('rS').innerHTML=[['wait','⏳ مستني اعتماد'],['ok','✅ معتمد'],['no','✖ مرفوض'],['all','الكل']].map(function(x){return '<label class="chip"><input type="radio" name="rs"'+(RSF===x[0]?' checked':'')+' onchange="rSet(\''+x[0]+'\')"><span>'+x[1]+' <small>'+C[x[0]]+'</small></span></label>'}).join('');
+  var L=RS.filter(function(r){if(RSF!=='all'&&rSt(r)!==RSF)return false;var has=!!rLoc(r);if(f==='no'&&has)return false;
     return !q||(r.fn+' '+r.name+' '+r.by).indexOf(q)>=0});
-  var miss=RS.filter(function(r){return !rLoc(r)}).length;
-  $('rSum').textContent=RS.length+' بحث — منهم '+miss+' ناقص لوكيشن'+(L.length!==RS.length?' — ظاهر '+L.length:'');
+  var miss=L.filter(function(r){return !rLoc(r)}).length;
+  $('rSum').textContent='ظاهر '+L.length+' بحث'+(miss?' — منهم '+miss+' ناقص لوكيشن':'');
   $('rList').innerHTML=L.slice(0,150).map(function(r){var u=rLoc(r);
     return '<div class="rc" id="rc'+r.id+'"><div class="h"><b>'+esc(r.name||'بدون اسم')+'</b><small>ملف '+esc(r.fn||'—')+'</small></div>'+
       '<div class="m">'+esc(r.type)+' — '+esc(r.dt)+' — الباحث: '+esc(r.by)+(r.src?' — من '+esc(r.src):'')+'<br>'+
@@ -439,7 +450,7 @@ function rDecide(id,dec){var r=RS.filter(function(x){return x.id===id})[0],c=$('
   if(dec==='reject'&&!confirm('رفض البحث ده؟'))return;
   c.innerHTML='<div class="msg">جاري '+(dec==='approve'?'الاعتماد وتحديث ملف الأسرة':'الرفض')+'…</div>';
   call('resDecide',[PIN,id,dec,''],function(d){r.vs=d.rejected?'validation_status_not_approved':'validation_status_approved';if(d.fn)r.fn=d.fn;rDraw();
-    var cc=$('le'+id);if(cc)cc.innerHTML='<div class="msg" style="color:var(--g);font-weight:700">'+(d.rejected?'✖ اترفض':'✅ اتعتمد — '+(d.isNew?'اتعمل ملف جديد رقم '+esc(d.fn):'ملف '+esc(d.fn)+' اتحدّث ('+d.changes+' تعديل)'))+'</div>'},
+    var cc=$('le'+id)||$('rMsg');if(cc)cc.innerHTML='<div class="msg" style="color:var(--g);font-weight:700">'+(d.rejected?'✖ اترفض':'✅ اتعتمد — '+(d.isNew?'اتعمل ملف جديد رقم '+esc(d.fn):'ملف '+esc(d.fn)+' اتحدّث ('+d.changes+' تعديل)'))+'</div>'},
    function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'})}
 function rEdit(id){var b=$('le'+id);if(b.innerHTML){b.innerHTML='';return}
   b.innerHTML='<div class="le"><textarea id="lt'+id+'" placeholder="الصق لينك جوجل ماب هنا — أو اكتب الإحداثيات: 28.43, 30.81"></textarea>'+
