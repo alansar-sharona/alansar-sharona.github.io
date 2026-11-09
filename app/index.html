@@ -154,6 +154,7 @@ input:focus{outline:none;border-color:var(--g)}
       <button class="btn" onclick="rfOpen('')" style="margin-top:4px">📝 بحث جديد</button>
       <div class="msg" style="text-align:right;margin:8px 0 0">📶 في مكان مفيهوش نت؟ اعمل البحث من تطبيق <b>KoboCollect</b> على الموبايل، وهيوصل هنا لوحده أول ما الموبايل يتوصل بالنت. — <a href="" id="rKobo" target="_blank" rel="noopener" style="color:var(--g)">أو افتح استمارة كوبو</a></div>
     </div>
+    <div class="card" id="rpBox"></div>
     <div class="card">
       <div class="rf chips" id="rS"></div>
       <div class="rq"><input id="rQ" class="tx" placeholder="دوّر برقم الملف أو الاسم أو الباحث" oninput="rDraw()"></div>
@@ -163,6 +164,15 @@ input:focus{outline:none;border-color:var(--g)}
       <div id="rKd" class="msg" style="text-align:right;margin:6px 0 0"></div>
     </div>
     <div id="rList"><div class="spin">جاري تحميل الأبحاث من كوبو…</div></div>
+  </section>
+  <section id="s-act" class="hide">
+    <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
+    <div class="card"><h2>⚙️ إدارة العطاءات</h2>
+      <button class="btn" onclick="aForm(null)">➕ عطاء جديد</button>
+      <div class="msg" style="text-align:right;margin:8px 0 0">الخطوات: <b>١</b> اعمل العطاء واكتب اسمه وقواعده — <b>٢</b> دوس «▶ ابدأ التوزيع» وسجّل كل أسرة استفادت (بالكارنيه أو رقم الملف أو الرقم القومي).</div>
+    </div>
+    <div id="aForm"></div>
+    <div id="aBody"></div>
   </section>
   <section id="s-print" class="hide">
     <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
@@ -231,7 +241,7 @@ function call(fn,args,ok,fail){
     .then(function(j){j.ok?ok(j.data):fail(j.error||'حصل خطأ')})
     .catch(function(){fail('مفيش اتصال بالنت — حاول تاني')});
 }
-function show(id){['s-login','s-home','s-org','s-print','s-res','s-fam','s-rf'].forEach(function(s){$(s).classList.toggle('hide',s!==id)})}
+function show(id){['s-login','s-home','s-org','s-print','s-res','s-fam','s-rf','s-act'].forEach(function(s){$(s).classList.toggle('hide',s!==id)})}
 
 function doLogin(p){
   var pin=p||$('pin').value.trim(); $('loginErr').textContent='';
@@ -260,7 +270,7 @@ function render(h){
     t+=tile('javascript:openRes()','📋','الأبحاث الاجتماعية',h.admin?'بحث جديد — ومراجعة واعتماد الأبحاث':'بحث جديد — وأبحاثك اللي اتبعتت','main');
   } else t+=tile(LINKS.form,'📶','استمارة البحث','استمارة كوبو');
   if(h.admin){
-    t+=tile(LINKS.acts,'⚙️','إدارة العطاءات','فتح وقفل العطاءات وقواعدها');
+    t+=tile('javascript:openAct()','⚙️','إدارة العطاءات','عطاء جديد — فتح وقفل — وبعدين ابدأ التوزيع');
     t+=tile(LINKS.sheet,'📊','قاعدة البيانات','الأسر والتسليمات والكفالات');
     t+=tile(LINKS.users,'👥','المستخدمين','الحسابات والأرقام السرية');
     t+=tile('javascript:openPrint()','🖨️','طباعة كشف','كشف توزيع أو تسليم بالمحددات اللي تختارها — PDF');
@@ -297,7 +307,7 @@ function fOpen(fn,okMsg){$('fList').classList.add('hide');var c=$('fCard');c.cla
     var h='<div class="card fd"><div class="h" style="display:flex;justify-content:space-between;gap:8px"><b style="font-size:18px">'+esc(f['اسم_رب_الأسرة'])+'</b><span class="no" style="color:var(--g);font-weight:700">ملف '+esc(f['رقم_الملف'])+'</span></div>'+
       '<div class="msg" style="text-align:right">'+stB(f['حالة_الملف'])+(f['التصنيف']?' تصنيف '+esc(f['التصنيف']):'')+(f['سبب_الحالة']?' — '+esc(f['سبب_الحالة']):'')+'</div>'+
       (okMsg?'<div class="msg" style="color:var(--g);font-weight:700;text-align:right">'+okMsg+'</div>':'')+
-      '<div class="ra" style="margin:10px 0">'+(d.full?'<button onclick="fEdit()">✏️ تعديل البيانات</button>':'')+(ADMIN?'<button onclick="fRenum()">🔢 تغيير رقم الملف</button>':'')+(ADMIN&&f['حالة_الملف']!=='محذوف'?'<button onclick="fDel()" style="color:var(--red)">🗑 حذف الملف</button>':'')+'<button class="p" onclick="rfOpen(\''+esc(f['رقم_الملف'])+'\')">📝 بحث جديد للأسرة</button></div>'+
+      '<div class="ra" style="margin:10px 0">'+(d.full?'<button onclick="fEdit()">✏️ تعديل البيانات</button>':'')+(d.full?'<button onclick="rpOne(\''+esc(f['رقم_الملف'])+'\')">🖨️ استمارة البحث</button>':'')+(ADMIN?'<button onclick="fRenum()">🔢 تغيير رقم الملف</button>':'')+(ADMIN&&f['حالة_الملف']!=='محذوف'?'<button onclick="fDel()" style="color:var(--red)">🗑 حذف الملف</button>':'')+'<button class="p" onclick="rfOpen(\''+esc(f['رقم_الملف'])+'\')">📝 بحث جديد للأسرة</button></div>'+
       '<div class="msg" style="text-align:right;margin:-4px 0 6px"><a href="'+esc(koboLink(f['رقم_الملف']))+'" target="_blank" rel="noopener" style="color:var(--mut)">أو افتح الاستمارة في كوبو</a></div>'+
       '<div class="ra" style="margin:10px 0">'+(ph?'<a href="tel:'+ph+'">📞 اتصال</a>':'')+(loc?'<a class="p" href="'+esc(/^https?:/.test(loc)?loc:'https://www.google.com/maps?q='+loc)+'" target="_blank" rel="noopener">🗺️ الخريطة</a>':'')+'</div>'+
       g('بيانات رب الأسرة',[['الرقم_القومي','الرقم القومي'],['الهاتف','التليفون'],['هاتف_بديل','تليفون بديل'],['صاحب_الهاتف_البديل','صاحب البديل'],['عمل_رب_الأسرة','العمل'],['الجنس','الجنس'],['الحالة_الاجتماعية','الحالة الاجتماعية'],['الحالة_الصحية','الحالة الصحية'],['نوع_المرض','نوع المرض'],['وصف_الحالة_الصحية','وصف الحالة']])+
@@ -421,7 +431,7 @@ function fSave(){var ch={},n=0;[].forEach.call(document.querySelectorAll('#fCard
   call('famSave',[PIN,FF['رقم_الملف'],ch],function(d){fOpen(FF['رقم_الملف'],'✅ اتحفظ '+d.n+' تعديل')},function(m){$('eMsg').innerHTML='<span class="err">'+esc(m)+'</span>'})}
 /* ===== الأبحاث ===== */
 var RS=null,ADMIN=false;
-function openRes(){show('s-res');window.scrollTo(0,0);$('rKobo').href=LINKS.form;$('rKd').innerHTML=ADMIN?'<a href="'+LINKS.koboData+'" target="_blank" rel="noopener" style="color:var(--mut)">📦 بيانات كوبو الكاملة (الصور والتصدير)</a>':'';if(RS){rDraw();return}
+function openRes(){show('s-res');window.scrollTo(0,0);$('rpBox').innerHTML='<b>🖨️ طباعة استمارات البحث</b>'+(ADMIN?'<div class="msg" style="text-align:right;margin:4px 0 8px">بتتطبع ببيانات المنصة وقت الطباعة — المتوفى والمحذوف مش بيطلعوا</div><div class="f2"><div class="f"><label class="l">منطقة التوزيع</label><select id="rpZ" class="tx"><option value="">كل المناطق</option><option>بحري</option><option>قبلي</option><option>شرق ب</option><option>شرق ق</option><option>وسط</option></select></div><div class="f"><label class="l">حالة الملف</label><select id="rpS" class="tx"><option value="">كل الحالات</option><option>نشط</option><option>انتظار</option><option>تحت المراجعة</option><option>مستبعد</option></select></div></div><div class="ra"><button class="p" onclick="rpMany()">🖨️ اطبع الاستمارات</button><button onclick="rpBlank()">📄 نموذج فاضي</button></div><div id="rpMsg"></div>':'<div class="ra" style="margin-top:8px"><button onclick="rpBlank()">📄 اطبع نموذج بحث فاضي</button></div>');$('rKobo').href=LINKS.form;$('rKd').innerHTML=ADMIN?'<a href="'+LINKS.koboData+'" target="_blank" rel="noopener" style="color:var(--mut)">📦 بيانات كوبو الكاملة (الصور والتصدير)</a>':'';if(RS){rDraw();return}
   $('rList').innerHTML='<div class="spin">جاري تحميل الأبحاث من كوبو…</div>';
   call('researches',[PIN],function(d){RS=d.list;rDraw()},function(m){$('rList').innerHTML='<div class="card err">'+esc(m)+'</div>'})}
 function rLoc(r){if(r.loc)return 'https://www.google.com/maps?q='+r.loc.lat+','+r.loc.lng;return r.link||r.famLoc||''}
@@ -447,6 +457,156 @@ function rDraw(){if(!RS)return;var q=$('rQ').value.trim(),f=(document.querySelec
 function rDel(id){var c=$('le'+id);if(!confirm('حذف البحث ده نهائي من كوبو؟ استخدمها للبحث المكرر أو اللي اتبعت غلط بس.'))return;
   c.innerHTML='<div class="msg">جاري الحذف…</div>';
   call('resDelete',[PIN,id],function(){RS=RS.filter(function(x){return x.id!==id});rDraw()},function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'})}
+var AL=null,ATYPES=['إطعام','لحوم','زكاة','شنطة مواد غذائية','كسوة','مبلغ نقدي','إعانة طارئة','كفالة','أخرى'],
+  AFQ={'مرة واحدة':'الأسرة تستلم مرة واحدة بس في العطاء ده','يومي':'مرة كل يوم (زي وجبة الخير)','شهري':'مرة كل شهر','بدون حد':'يتسجّل كل مرة من غير منع تكرار'},
+  AEL={'كل النشطين':'كل الأسر اللي حالتها نشط','تصنيف أ':'الأسر تصنيف أ بس','تصنيف أ و ب':'الأسر تصنيف أ و ب','الكشف فقط':'اللي في كشف متجهز مسبقاً بس','المكفولين':'الأسر المكفولة'};
+function openAct(){show('s-act');window.scrollTo(0,0);$('aForm').innerHTML='';$('aBody').innerHTML='<div class="spin">جاري تحميل العطاءات…</div>';
+  call('actList',[PIN],function(d){AL=d.list;aDraw()},function(m){$('aBody').innerHTML='<div class="card err">'+esc(m)+'</div>'})}
+function aStart(c){return '../tawzee/?act='+encodeURIComponent(c)}
+function aFam(a){return Math.max(a.n||0,Number(a.aggN)||0)}
+function aYear(a){return (a.date||'').slice(0,4)||(a.last?a.last.slice(-4):'')}
+function aDraw(){if(!AL)return;var o=AL.filter(function(a){return !a.done&&a.open}),c=AL.filter(function(a){return !a.done&&!a.open}),dn=AL.filter(function(a){return a.done});
+  var Y={};AL.forEach(function(a){var y=aYear(a);if(!y||!(a.done||a.n))return;var s=Y[y]||(Y[y]={k:0,f:0,v:0});s.k++;s.f+=aFam(a);s.v+=Number(a.aggV)||0});
+  var ys=Object.keys(Y).sort().reverse(),fmt=function(x){return Number(x).toLocaleString('en-US')};
+  function card(a){var i=AL.indexOf(a),agg=a.mode==='إجمالي';
+    return '<div class="rc"><div class="h"><b>'+esc(a.name||a.code)+'</b><small>'+(a.done?'<span class="badge ok">✅ تم التوزيع</span>':a.open?'<span class="badge ok">🟢 مفتوح</span>':'<span class="badge">⏸ مقفول</span>')+'</small></div>'+
+    '<div class="m">'+esc(a.type?a.type+' — ':'')+(agg?'تسجيل إجمالي':esc(a.freq)+' — '+esc(a.elig)+(a.qty?' — '+esc(a.qty)+' '+esc(a.unit):''))+(a.date?' — '+esc(a.date):'')+
+    '<br>الأسر: <b>'+fmt(aFam(a))+'</b>'+(a.n?' (بالأسماء '+fmt(a.n)+')':'')+(a.aggV?' — القيمة: <b>'+fmt(a.aggV)+'</b> جنيه':'')+(a.last?' — آخر تسليم '+esc(a.last):'')+
+    (a.note?'<br>'+esc(a.note):'')+(a.photos?'<br><a href="'+esc(a.photos)+'" target="_blank" rel="noopener" style="color:var(--g)">📁 صور التوثيق</a>':'')+'</div>'+
+    '<div class="ra">'+(!a.done&&a.open&&!agg?'<a class="p" href="'+aStart(a.code)+'">▶ ابدأ التوزيع</a>':'')+
+      (!a.done?'<button class="p" onclick="aDone('+i+')">✅ تم التوزيع</button>':'')+
+      (a.done&&!a.open?'<button onclick="aNames('+i+')">➕ إضافة أسماء</button>':'')+(a.done&&a.open?'<a class="p" href="'+aStart(a.code)+'">➕ سجّل الأسماء</a><button onclick="aTog('+i+')">⏸ اقفله</button>':'')+
+      (!a.done&&!agg?'<button onclick="aTog('+i+')">'+(a.open?'⏸ اقفله':'🟢 افتحه')+'</button>':'')+
+      '<label class="chip" style="margin:0"><input type="file" accept="image/*" multiple onchange="aPh(this,'+i+')"><span style="display:inline-block">📷 صور</span></label>'+
+      '<button onclick="aForm('+i+')">✏️ تعديل</button></div><div id="am'+i+'"></div></div>'}
+  function sec(t,L){return L.length?'<div class="card msg" style="text-align:right;margin-bottom:0"><b>'+t+' ('+L.length+')</b></div>'+L.map(card).join(''):''}
+  $('aBody').innerHTML=(ys.length?'<div class="card"><b>📊 إحصائيات العطاءات</b>'+ys.map(function(y){var s=Y[y];return '<div class="msg" style="text-align:right;margin:4px 0 0">سنة '+y+': '+s.k+' عطاء — '+fmt(s.f)+' أسرة'+(s.v?' — '+fmt(s.v)+' جنيه':'')+'</div>'}).join('')+'</div>':'')+
+    (o.length?sec('مفتوحة للتوزيع',o):'<div class="card msg">مفيش عطاء مفتوح — اعمل عطاء جديد</div>')+sec('مقفولة (لسه ما خلصتش)',c)+sec('تم التوزيع',dn)}
+function aSel(id,L,v,desc){return '<select id="'+id+'" class="tx">'+L.map(function(x){return '<option'+(x===v?' selected':'')+' value="'+esc(x)+'">'+esc(x)+(desc&&desc[x]?' — '+esc(desc[x]):'')+'</option>'}).join('')+'</select>'}
+function aMode(){var g=document.querySelector('input[name=aM]:checked').value==='إجمالي';$('aNm').classList.toggle('hide',g);$('aAg').classList.toggle('hide',!g)}
+function aForm(i){var a=i==null?{name:'',type:'',freq:'مرة واحدة',elig:'كل النشطين',qty:'1',unit:'',open:true,mode:'بالأسماء',aggN:'',aggV:'',date:'',note:''}:AL[i],T=ATYPES.slice();if(a.type&&T.indexOf(a.type)<0)T.unshift(a.type);
+  var agg=a.mode==='إجمالي',num=function(id,val,ph){return '<input id="'+id+'" class="tx" inputmode="decimal" placeholder="'+(ph||'')+'" value="'+esc(val==null?'':val)+'" style="direction:ltr;text-align:right">'};
+  $('aForm').innerHTML='<div class="card"><h2>'+(i==null?'➕ عطاء جديد':'✏️ تعديل العطاء')+'</h2>'+
+   '<div class="f"><label class="l">اسم العطاء <span style="color:var(--red)">*</span></label><input id="aN" class="tx" placeholder="مثلاً: لحوم عيد الأضحى 1447" value="'+esc(a.name)+'"></div>'+
+   '<div class="f2"><div class="f"><label class="l">النوع</label>'+aSel('aT',[''].concat(T),a.type)+'</div><div class="f"><label class="l">تاريخ التوزيع</label><input id="aD" class="tx" type="date" value="'+esc(a.date)+'"></div></div>'+
+   '<div class="f"><label class="l">هتسجّل المستفيدين إزاي؟</label><div class="chips"><label class="chip"><input type="radio" name="aM" value="بالأسماء"'+(agg?'':' checked')+' onchange="aMode()"><span>👤 بالأسماء (كل أسرة لوحدها)</span></label><label class="chip"><input type="radio" name="aM" value="إجمالي"'+(agg?' checked':'')+' onchange="aMode()"><span>🔢 إجمالي (عدد وقيمة بس)</span></label></div></div>'+
+   '<div id="aNm"'+(agg?' class="hide"':'')+'><div class="f"><label class="l">كل أسرة تستلم كام مرة؟</label>'+aSel('aF',Object.keys(AFQ),a.freq,AFQ)+'</div>'+
+   '<div class="f"><label class="l">مين يستحق؟</label>'+aSel('aE',Object.keys(AEL),a.elig,AEL)+'</div>'+
+   '<div class="f2"><div class="f"><label class="l">الكمية لكل أسرة</label>'+num('aQ',a.qty)+'</div><div class="f"><label class="l">الوحدة</label><input id="aU" class="tx" placeholder="كيلو / شنطة / وجبة / جنيه" value="'+esc(a.unit)+'"></div></div>'+
+   '<label class="chip" style="display:inline-block;margin:4px 0 10px"><input type="checkbox" id="aO"'+(a.open?' checked':'')+'><span>🟢 مفتوح للتوزيع</span></label></div>'+
+   '<div id="aAg"'+(agg?'':' class="hide"')+'><div class="f2"><div class="f"><label class="l">عدد الأسر المستفيدة</label>'+num('aAN',a.aggN)+'</div><div class="f"><label class="l">إجمالي القيمة (جنيه)</label>'+num('aAV',a.aggV)+'</div></div>'+
+   '<label class="chip" style="display:inline-block;margin:4px 0 10px"><input type="checkbox" id="aDn"'+(a.done||i==null?' checked':'')+'><span>✅ تم التوزيع</span></label></div>'+
+   '<div class="f"><label class="l">ملاحظات</label><input id="aNo" class="tx" value="'+esc(a.note||'')+'"></div>'+
+   '<div class="err" id="aErr"></div><div class="ra"><button onclick="$(\'aForm\').innerHTML=\'\'">إلغاء</button><button class="p" onclick="aSave('+(i==null?'null':i)+')">💾 حفظ</button></div></div>';
+  $('aN').focus();window.scrollTo(0,$('aForm').offsetTop-10)}
+function aNum(x){return String(x||'').replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace(/[,،٬\s]/g,'').trim()}
+function aSave(i){var mode=document.querySelector('input[name=aM]:checked').value,agg=mode==='إجمالي';
+  var v={name:$('aN').value.trim(),type:$('aT').value,mode:mode,date:$('aD').value,note:$('aNo').value.trim()};
+  if(agg){v.aggN=aNum($('aAN').value);v.aggV=aNum($('aAV').value);v.done=$('aDn').checked;v.open=false}
+  else{v.freq=$('aF').value;v.elig=$('aE').value;v.qty=aNum($('aQ').value);v.unit=$('aU').value.trim();v.open=$('aO').checked}
+  if(!v.name){$('aErr').textContent='اكتب اسم العطاء';return}if(i!=null)v.code=AL[i].code;
+  $('aErr').innerHTML='<span class="msg">جاري الحفظ…</span>';
+  call('actSave',[PIN,v],function(d){$('aForm').innerHTML='<div class="card" style="text-align:center"><div style="font-size:40px">✅</div><h2 style="color:var(--g)">'+(d.isNew?'العطاء اتعمل':'العطاء اتعدّل')+'</h2><div class="msg">'+esc(v.name)+'</div>'+
+    (!agg&&v.open?'<a class="btn" style="display:block;text-decoration:none" href="'+aStart(d.code)+'">▶ ابدأ التوزيع وسجّل المستفيدين</a>':agg?'<div class="msg">تقدر تضيف صور التوثيق من زرار «📷 صور» في كارت العطاء</div>':'<div class="msg">العطاء مقفول — افتحه لما تحب تبدأ التوزيع</div>')+'</div>';
+    call('actList',[PIN],function(x){AL=x.list;aDraw()},function(){})},function(m){$('aErr').textContent=m})}
+function aDone(i){var a=AL[i],c=$('am'+i);
+  c.innerHTML='<div class="le"><b>✅ إنهاء العطاء — تم التوزيع</b><div class="f2" style="margin-top:6px"><div class="f"><label class="l">عدد الأسر المستفيدة</label><input id="adN'+i+'" class="tx" inputmode="numeric" value="'+aFam(a)+'" style="direction:ltr;text-align:right"></div><div class="f"><label class="l">إجمالي القيمة (جنيه)</label><input id="adV'+i+'" class="tx" inputmode="decimal" value="'+esc(a.aggV||'')+'" style="direction:ltr;text-align:right"></div></div>'+
+   '<div class="f"><label class="l">تاريخ التوزيع</label><input id="adD'+i+'" class="tx" type="date" value="'+esc(a.date||new Date().toISOString().slice(0,10))+'"></div>'+
+   '<div class="ra"><button onclick="$(\'am'+i+'\').innerHTML=\'\'">إلغاء</button><button class="p" onclick="aDoneGo('+i+')">✅ تأكيد</button></div><div class="err" id="adE'+i+'"></div></div>'}
+function aDoneGo(i){var a=AL[i];$('adE'+i).innerHTML='<span class="msg">جاري…</span>';
+  call('actSave',[PIN,{code:a.code,done:true,aggN:aNum($('adN'+i).value),aggV:aNum($('adV'+i).value),date:$('adD'+i).value}],function(){call('actList',[PIN],function(x){AL=x.list;aDraw()},function(){})},function(m){$('adE'+i).textContent=m})}
+function aNames(i){var a=AL[i];if(!confirm('فتح «'+a.name+'» تاني عشان تسجّل أسماء المستفيدين؟ هيفضل متعلّم «تم التوزيع».'))return;
+  call('actSave',[PIN,{code:a.code,open:true,mode:'بالأسماء'}],function(){a.open=true;a.mode='بالأسماء';aDraw()},function(m){alert(m)})}
+function aPh(inp,i){var a=AL[i],fs=[].slice.call(inp.files||[]),c=$('am'+i),out=[];if(!fs.length)return;c.innerHTML='<div class="msg">جاري تجهيز '+fs.length+' صورة…</div>';
+  (function nx(k){if(k>=fs.length){c.innerHTML='<div class="msg">جاري رفع الصور…</div>';call('actPhotos',[PIN,a.code,out],function(d){a.photos=d.url;aDraw();var cc=$('am'+i);if(cc)cc.innerHTML='<div class="msg" style="color:var(--g)">✅ الصور اترفعت ('+d.n+' صورة في الفولدر)</div>'},function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'});return}
+   var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,1600/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+     out.push({name:a.code+'-'+Date.now()+'-'+k+'.jpg',b64:cv.toDataURL('image/jpeg',0.8).split(',')[1],mime:'image/jpeg'});nx(k+1)};im.onerror=function(){nx(k+1)};im.src=rd.result};rd.readAsDataURL(fs[k])})(0)}
+function aTog(i){var a=AL[i];$('am'+i).innerHTML='<div class="msg">جاري…</div>';
+  call('actSave',[PIN,{code:a.code,open:!a.open}],function(){a.open=!a.open;aDraw()},function(m){$('am'+i).innerHTML='<div class="err">'+esc(m)+'</div>'})}
+/* ===== طباعة استمارات البحث (من بيانات المنصة وقت الطباعة) ===== */
+var RP_CSS='@page{size:A4;margin:9mm 8mm}*{box-sizing:border-box}body{font-family:"Noto Sans Arabic",Tahoma,sans-serif;direction:rtl;margin:0;color:#000;font-size:10.5px;line-height:1.25;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+ '.pg{page-break-after:always;break-after:page}.pg:last-child{page-break-after:auto;break-after:auto}'+
+ '.hd{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #00B050;padding-bottom:4px;margin-bottom:4px}.hd .o{font-size:10px;line-height:1.5}.hd .o b{font-size:13px}.hd h1{font-size:19px;margin:0}.hd img{width:50px;height:48px}'+
+ 'h3{font-size:11.5px;margin:6px 0 3px;text-decoration:underline}table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:2px}td,th{border:1px solid #444;padding:2px 4px;height:21px;vertical-align:middle;word-wrap:break-word}'+
+ '.y{background:#FFFF99;font-weight:700}.g{background:#00B050;font-weight:700}.n{background:#BDD7EE;font-weight:700}.d{color:#0B3D91;font-weight:700}.c{text-align:center}.t td{height:25px}'+
+ '.ft{display:flex;gap:10px;margin-top:6px;align-items:stretch}.ft ul{flex:1;margin:0;padding-right:16px;font-size:9.5px;line-height:1.7}.ft .qr{width:90px;border:1px solid #444;text-align:center;font-size:9px;color:#1F5FA8;font-weight:700;padding-top:4px}'+
+ '.meta{font-size:8.5px;color:#666;text-align:left;margin-top:3px}.dots td{height:20px;border-bottom:1px dotted #888}';
+function rpE(s){return esc(s==null?'':String(s))}
+function rpN(s){return String(s||'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').trim()}
+function rpCB(list,sel){sel=rpN(sel);return list.map(function(x){var xn=rpN(x),on=sel&&(sel===xn||sel.split(/[،,\s]+/).indexOf(xn)>=0||(xn.length>2&&sel.indexOf(xn)>=0));return (on?'☒ ':'☐ ')+x}).join('&nbsp;&nbsp;&nbsp;')}
+function rpRow(cells){return '<tr>'+cells.map(function(c){return '<td colspan="'+(c[1]||1)+'" class="'+(c[2]||'')+'">'+(c[0]==null?'':c[0])+'</td>'}).join('')+'</tr>'}
+function rpTbl(rows){return '<table><colgroup>'+Array(12).fill('<col>').join('')+'</colgroup>'+rows.join('')+'</table>'}
+function rpForm(f,meta){f=f||{};var v=function(k){return rpE(f[k]||'')},blank=!f['رقم_الملف'];
+  var reg=(f['المنطقة']||'').indexOf('شرق')===0?'شرق':(f['المنطقة']||'');
+  var regL={'بحري':'بحري (1)','قبلي':'قبلي (2)','شرق':'شرق (3)','وسط':'وسط (4)'}[reg]||'';
+  var h='<div class="pg"><div class="hd"><div class="o"><b>جمعية الأنصار بشارونة</b><br>مشهرة برقم 2379 لسنة 2012م<br>لجنة البحث الاجتماعي</div><h1>استمارة بحث اجتماعي</h1><img src="'+(document.querySelector('img.logo')||{}).src+'"></div>';
+  h+='<h3>بيانات الملف والبحث :</h3>'+rpTbl([
+    rpRow([['رقم الملف',2,'n'],[v('رقم_الملف'),2,'d'],['نوع البحث',2,'n'],[rpCB(['جديد','تحديث'],blank?'':'تحديث'),3],['تاريخ البحث',1,'n'],['&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;/ 20',2]]),
+    rpRow([['اسم الباحث',2,'n'],['',5],['تليفون الباحث',2,'n'],['',3]]),
+    rpRow([['مصدر الترشيح',2,'n'],[rpCB(['بحث ميداني','شخص ثقة','تقدّم بنفسه','أخرى'],f['مصدر_الترشيح']),10]]),
+    rpRow([['اسم المرشِّح وصلته',2,'n'],[v('اسم_المرشح'),10,'d']]),
+    rpRow([['المنطقة',2,'n'],[rpCB(['بحري (1)','قبلي (2)','شرق (3)','وسط (4)'],regL),10]]),
+    rpRow([['منطقة التوزيع',2,'n'],[rpCB(['بحري','قبلي','شرق ب','شرق ق','وسط'],f['منطقة_التوزيع']),10]])]);
+  h+='<h3>أولا : بيانات الأسرة :</h3>'+rpTbl([
+    rpRow([['اسم المستفيد رباعي',3,'y'],[v('اسم_رب_الأسرة'),9,'d']]),
+    rpRow([['رقم البطاقة',3,'y'],[v('الرقم_القومي'),9,'d']]),
+    rpRow([['رقم الهاتف',3,'y'],[v('الهاتف'),4,'d'],['عمل رب الاسرة',2,'g'],[v('عمل_رب_الأسرة'),3,'d']]),
+    rpRow([['هاتف بديل',3,'n'],[v('هاتف_بديل'),4,'d'],['صاحبه وصلته',2,'n'],[v('صاحب_الهاتف_البديل'),3,'d']]),
+    rpRow([['الجنس',2,'y'],[rpCB(['ذكر','انثى'],f['الجنس']),3],['الحالة الاجتماعية',2,'g'],[rpCB(['متزوج','ارمل','مطلق','اعزب'],f['الحالة_الاجتماعية']),5]]),
+    rpRow([['الحالة الصحية لرب الأسرة',3,'g'],[rpCB(['معافي','مريض'],f['الحالة_الصحية']),3],['نوع المرض',2,'g'],[rpCB(['مزمن','إعاقة'],f['نوع_المرض']),4]]),
+    rpRow([['وصف الحالة الصحية',3,'y'],[v('وصف_الحالة_الصحية'),9,'d']]),
+    rpRow([['عدد الافراد',1,'y'],[v('عدد_الأفراد'),1,'d c'],['عدد الاطفال',1,'g'],[v('عدد_الأطفال'),1,'d c'],['عدد طلاب المدارس',2,'g'],[v('طلاب_المدارس'),1,'d c'],['عدد طلاب الجامعة',2,'g'],[v('طلاب_الجامعة'),1,'d c'],['عدد المرضي',1,'g'],[v('عدد_المرضى'),1,'d c']]),
+    rpRow([['قريب مسجّل بالجمعية؟',3,'n'],[rpCB(['لا','نعم'],f['رقم_ملف_قريب_مسجل']?'نعم':''),2],['رقم ملفه',2,'n'],[v('رقم_ملف_قريب_مسجل'),2,'d'],['صلته',1,'n'],['',2]])]);
+  var hs=f['نوع_السكن']||'';
+  h+='<h3>ثانيا : بيانات السكن :</h3>'+rpTbl([
+    rpRow([['المنطقة',2,'y'],[rpE(f['المنطقة']||''),2,'d'],['الشارع / الحارة',2,'n'],[v('الشارع_الحارة'),6,'d']]),
+    rpRow([['علامة مميزة (بجوار)',2,'n'],[v('علامة_مميزة'),10,'d']]),
+    rpRow([['العنوان / وصف الوصول',2,'n'],[v('العنوان_الوصفي'),10,'d']]),
+    rpRow([['نوع السكن',2,'y'],[rpCB(['تمليك','ايجار','مع العائلة','بدون'],hs),6],['قيمة الإيجار الشهري',2,'n'],[v('قيمة_الإيجار'),2,'d']]),
+    rpRow([['عدد الغرف',2,'n'],[v('عدد_الغرف'),2,'d'],['حالة المبنى',2,'n'],[rpCB(['جيد','متوسط','آيل'],f['حالة_المبنى']),6]]),
+    rpRow([['السقف',2,'n'],[rpCB(['خرسانة','خشب','جريد / بوص'],f['السقف']),4],['الحوائط',2,'n'],[rpCB(['طوب أحمر','طوب ني'],f['الحوائط']),4]]),
+    rpRow([['المرافق',2,'n'],[rpCB(['مياه','كهرباء','صرف صحي','غاز'],f['المرافق']),10]]),
+    rpRow([['الأجهزة والكماليات',2,'y'],[rpCB(['ثلاجة','غسالة','سخان','فرن','بوتاجاز','فريزر','سجاد','تلفزيون','مروحة','أخرى'],f['كماليات_السكن']),10]]),
+    rpRow([['اللوكيشن',2,'n'],[(f['اللوكيشن']?'<span style="font-size:8.5px;direction:ltr;unicode-bidi:embed">'+v('اللوكيشن')+'</span>':''),10,'d']])]);
+  var M=(f.members||[]).slice(),n=Math.max(10,M.length);
+  h+='<h3>ثالثا : بيانات أفراد الأسرة :</h3><table class="t"><colgroup><col style="width:4%"><col style="width:21%"><col style="width:9%"><col style="width:15%"><col style="width:5%"><col style="width:9%"><col style="width:10%"><col style="width:7%"><col style="width:9%"><col style="width:11%"></colgroup>'+
+    '<tr><th class="y">م</th><th class="y">الاسم</th><th class="n">صلة القرابة</th><th class="y">الرقم القومي</th><th class="n">السن</th><th class="n">الدراسة / المرحلة</th><th class="y">المهنة</th><th class="y">الراتب</th><th class="n">الحالة الصحية</th><th class="y">ملاحظات</th></tr>';
+  for(var i=0;i<n;i++){var m=M[i]||{};h+='<tr><td class="c">'+(i+1)+'</td><td class="d">'+rpE(m.name)+'</td><td class="d">'+rpE(m.rel)+'</td><td class="d" style="font-size:9.5px">'+rpE(m.nid)+'</td><td class="d c">'+rpE(m.age)+'</td><td class="d">'+rpE(m.edu)+'</td><td class="d">'+rpE(m.job)+'</td><td class="d">'+rpE(m.sal)+'</td><td class="d">'+rpE(m.health)+'</td><td class="d">'+rpE(m.note)+'</td></tr>'}
+  h+='</table></div><div class="pg">';
+  var inc=[['الراتب/تقاعد','g','راتب_معاش'],['تأمينات','n','تأمينات'],['مساعدات الشئون','g','مساعدات_الشئون'],['حياة كريمة','g','حياة_كريمة'],['أيتام/أرامل','g','أيتام_أرامل'],['نفقة','g','نفقة'],['تكافل وكرامة','n','تكافل_وكرامة'],['عمل يومية / موسمي','n',''],['دعم أقارب','n',''],['دخل آخر','n','دخل_آخر']],
+      obl=[['إيجار','g'],['قسط بناء','g'],['قسط علاج','g'],['قسط دراسة','g'],['جمعية','g'],['علاج شهري مستمر','n'],['ديون','n'],['',''],['',''],['','']];
+  h+='<h3>رابعا : بيانات الإيرادات والالتزامات المالية :</h3><table class="t"><colgroup><col style="width:4%"><col style="width:16%"><col style="width:6%"><col style="width:9%"><col style="width:4%"><col style="width:13%"><col style="width:10%"><col style="width:9%"><col style="width:11%"><col style="width:18%"></colgroup>'+
+    '<tr><th class="y">م</th><th class="y">دخل الأسرة</th><th class="n">يوجد</th><th class="y">المبلغ</th><th class="y">م</th><th class="y">بيان الالتزام</th><th class="y">المبلغ الكلي</th><th class="y">القسط الشهري</th><th class="y">ينتهي في</th><th class="y">ملاحظات</th></tr>';
+  for(i=0;i<10;i++){var a=inc[i][2]?String(f[inc[i][2]]||'').replace(/^0$/,''):'';h+='<tr><td class="c">'+(i+1)+'</td><td class="'+inc[i][1]+'">'+inc[i][0]+'</td><td class="d c">'+(a?'✓':'')+'</td><td class="d c">'+rpE(a)+'</td><td class="c">'+(i+1)+'</td><td class="'+obl[i][1]+'">'+obl[i][0]+'</td><td></td><td></td><td></td><td></td></tr>'}
+  h+='</table>'+rpTbl([
+    rpRow([['مجموع الإيرادات',3,'g'],[v('مجموع_الإيرادات'),1,'d c'],['مجموع الالتزامات',3,'g'],[v('مجموع_الالتزامات'),1,'d c'],['صافي الدخل',2,'g'],[v('صافي_الدخل'),2,'d c']]),
+    rpRow([['أصول / ممتلكات',3,'n'],[f['أصول']?'<span class="d">'+v('أصول')+'</span>':rpCB(['أرض زراعية (مساحة: ......)','مواشي (عدد: ......)','محل / مشروع','أخرى'],''),9]])]);
+  var cur=[f['التصنيف']?'التصنيف الحالي: '+f['التصنيف']:'',f['حالة_الملف']?'حالة الملف: '+f['حالة_الملف']:'',f._res&&f._res.date?'آخر بحث: '+f._res.date+(f._res.by?' — '+f._res.by:''):''].filter(String).join('  —  ');
+  h+='<h3>خامسا : التصنيف :</h3>'+rpTbl([
+    rpRow([['الوضع الحالي',3,'n'],[rpE(cur),9,'d']]),
+    rpRow([['تقدير الباحث',3,'n'],[rpCB(['أ','ب','ج','د'],''),9]]),
+    rpRow([['ملاحظات المعاينة (ما لا يظهر في البيانات)',3,'n'],[f['ملاحظات']?'ملاحظة سابقة: '+v('ملاحظات'):'',9,'d']]).replace('<tr>','<tr style="height:42px">'),
+    rpRow([['سبب الاختلاف عن التصنيف الحالي',3,'n'],['',9]]).replace('<tr>','<tr style="height:36px">')]);
+  h+='<h3>سادسا : نتائج البحث :</h3><table class="dots"><tr><td colspan="12" style="border:1px solid #444;font-weight:700">نتائج البحث وملاحظات اللجنة:</td></tr>'+[1,2,3,4].map(function(){return '<tr><td colspan="12"></td></tr>'}).join('')+'</table>'+rpTbl([rpRow([['الاسم :',5],['التوقيع :',4],['التاريخ :',3]])]);
+  h+='<h3>سابعا : التوصية والاعتماد :</h3>'+rpTbl([
+    rpRow([['توصية الباحث',2,'n'],[rpCB(['قبول','انتظار','استبعاد'],''),10]]),
+    rpRow([['سبب التوصية (إجباري)',2,'n'],['',10]]).replace('<tr>','<tr style="height:34px">'),
+    rpRow([['حالة الملف',2,'n'],[rpCB(['نشط','انتظار','مستبعد','متوفى','انتقل','موقوف مؤقتاً'],''),10]]),
+    rpRow([['اعتماد اللجنة',2,'n'],['الاسم :',4],['التوقيع :',3],['التاريخ :',3]]),
+    rpRow([['موعد البحث القادم',2,'n'],['&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;/ 20',10]])]);
+  h+='<div class="ft"><ul><li>نسخة من أحدث كشف لراتب العاملين بالأسرة.</li><li>تعبئة البيانات بخط واضح.</li><li>نسخ من بطاقات الهوية لجميع أفراد الأسرة.</li><li>أي معلومات غير صحيحة تعرض صاحب الاستمارة إلى شطب من اللجنة.</li></ul><div class="qr">باركود لوكيشن المنزل</div></div>';
+  h+='<div class="meta">'+(blank?'نموذج فارغ':'بيانات ملف '+v('رقم_الملف')+' كما في المنصة يوم '+rpE(meta&&meta.at))+'</div></div>';
+  return h}
+function rpOpen(title,body){var w=RPW||window.open('','_blank');RPW=null;if(!w){alert('المتصفح منع فتح صفحة الطباعة — اسمح بالنوافذ المنبثقة للمنصة');return}
+  w.document.open();w.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+rpE(title)+'</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet"><style>'+RP_CSS+'</style></head><body>'+body+'<script>window.onload=function(){setTimeout(function(){window.print()},600)}<\/script></body></html>');w.document.close()}
+var RPW=null;
+function rpWin(){RPW=window.open('','_blank');if(RPW)RPW.document.write('<p style="font-family:sans-serif;direction:rtl;padding:30px">جاري تجهيز الاستمارات…</p>')}
+function rpBlank(){RPW=null;rpOpen('استمارة بحث فارغة',rpForm({},null))}
+function rpOne(fn){rpWin();call('famPrint',[PIN,{fn:fn}],function(d){rpOpen('استمارة بحث — ملف '+fn,d.list.map(function(f){return rpForm(f,d)}).join(''))},function(m){if(RPW)RPW.close();RPW=null;alert(m)})}
+function rpMany(){var z=$('rpZ').value,s=$('rpS').value;$('rpMsg').innerHTML='<span class="msg">جاري تجهيز الاستمارات…</span>';rpWin();
+  call('famPrint',[PIN,{zone:z,status:s}],function(d){$('rpMsg').innerHTML='<span class="msg" style="color:var(--g)">'+d.list.length+' استمارة اتجهزت في صفحة الطباعة</span>';
+    if(!d.list.length){if(RPW)RPW.close();RPW=null;$('rpMsg').innerHTML='<span class="err">مفيش أسر بالاختيار ده</span>';return}
+    rpOpen('استمارات البحث'+(z?' — '+z:'')+(s?' — '+s:''),d.list.map(function(f){return rpForm(f,d)}).join(''))},function(m){if(RPW)RPW.close();RPW=null;$('rpMsg').innerHTML='<span class="err">'+esc(m)+'</span>'})}
 function fRenum(){var o=FF['رقم_الملف'],n=prompt('رقم الملف الجديد للأسرة دي (بدل '+o+'):\nبيتغيّر في كل الشيتات (الأفراد، التسليمات، الأبحاث، الكفالات)، والكارنيه القديم هيفضل شغال.','');if(n==null)return;
   n=n.replace(/[٠-٩]/g,function(x){return '٠١٢٣٤٥٦٧٨٩'.indexOf(x)}).replace(/\D/g,'');if(!n)return;if(!confirm('تغيير رقم الملف من '+o+' إلى '+n+'؟'))return;
   call('famRenumber',[PIN,o,n],function(d){fOpen(d.fn,'🔢 رقم الملف اتغيّر من '+esc(o)+' إلى '+esc(d.fn)+'. الكارنيه القديم لسه شغال.')},function(m){alert(m)})}
