@@ -125,6 +125,7 @@ function loadActs(){
     if(!list.length){$('acts').innerHTML='<div class="msg">مفيش عطاء مفتوح للتوزيع دلوقتي.</div>';return}
     window._acts=list; var last=load('ansar_act');
     $('acts').innerHTML=list.map(function(a,i){return '<div class="act" onclick="pickAct('+i+')"><div><b>'+esc(a.name)+'</b><span>'+esc(a.freq)+' — '+esc(a.elig)+'</span></div><div class="n">'+a.today+'<small>النهارده</small></div></div>'}).join('');
+    var pre=new URLSearchParams(location.search).get('act');if(pre){var j=list.findIndex(function(a){return a.code===pre});history.replaceState(null,'',location.pathname);if(j>=0){pickAct(j);return}toast('العطاء ده مقفول أو مش موجود',true)}
     if(last){var k=list.findIndex(function(a){return a.code===last});if(k>=0&&list.length===1)pickAct(k)}
   });
 }
