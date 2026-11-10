@@ -169,7 +169,7 @@ input:focus{outline:none;border-color:var(--g)}
     <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
     <div class="card"><h2>⚙️ إدارة العطاءات</h2>
       <button class="btn" onclick="aForm(null)">➕ عطاء جديد</button>
-      <div class="msg" style="text-align:right;margin:8px 0 0">الخطوات: <b>١</b> اعمل العطاء واكتب اسمه وقواعده — <b>٢</b> دوس «▶ ابدأ التوزيع» وسجّل كل أسرة استفادت (بالكارنيه أو رقم الملف أو الرقم القومي).</div>
+      <div class="msg" style="text-align:right;margin:8px 0 0">الخطوات: <b>١</b> اعمل العطاء واكتب اسمه وقواعده — <b>٢</b> العطاء بيظهر في صفحة «توزيع العطاءات» — سجّل فيه كل أسرة استفادت (بالكارنيه أو رقم الملف أو الرقم القومي) — <b>٣</b> علّمه «✅ تم التوزيع» بالإجمالي.</div>
     </div>
     <div id="aForm"></div>
     <div id="aBody"></div>
@@ -473,9 +473,9 @@ function aDraw(){if(!AL)return;var o=AL.filter(function(a){return !a.done&&a.ope
     '<div class="m">'+esc(a.type?a.type+' — ':'')+(agg?'تسجيل إجمالي':esc(a.freq)+' — '+esc(a.elig)+(a.qty?' — '+esc(a.qty)+' '+esc(a.unit):''))+(a.date?' — '+esc(a.date):'')+
     '<br>الأسر: <b>'+fmt(aFam(a))+'</b>'+(a.n?' (بالأسماء '+fmt(a.n)+(Number(a.aggN)>a.n?' من '+fmt(a.aggN):'')+')':'')+(a.aggQ?' — الكمية: <b>'+fmt(a.aggQ)+'</b> '+esc(a.unit):'')+(a.aggV?' — القيمة: <b>'+fmt(a.aggV)+'</b> جنيه':'')+(a.last?' — آخر تسليم '+esc(a.last):'')+
     (a.note?'<br>'+esc(a.note):'')+(a.photos?'<br><a href="'+esc(a.photos)+'" target="_blank" rel="noopener" style="color:var(--g)">📁 صور التوثيق</a>':'')+'</div>'+
-    '<div class="ra">'+(!a.done&&a.open&&!agg?'<a class="p" href="'+aStart(a.code)+'">▶ ابدأ التوزيع</a>':'')+
+    '<div class="ra">'+(!a.done?'<a class="p" href="'+aStart(a.code)+'">'+(agg?'➕ سجّل الأسماء':'▶ ابدأ التوزيع')+'</a>':'')+
       (!a.done?'<button class="p" onclick="aDone('+i+')">✅ تم التوزيع</button>':'')+
-      (a.done&&!a.open?'<button onclick="aNames('+i+')">➕ إضافة أسماء</button>':'')+(a.done&&a.open?'<a class="p" href="'+aStart(a.code)+'">➕ سجّل الأسماء</a><button onclick="aTog('+i+')">⏸ اقفله</button>':'')+
+      (a.done?'<a class="p" href="'+aStart(a.code)+'">➕ سجّل الأسماء</a>':'')+(a.done&&a.open?'<button onclick="aTog('+i+')">⏸ اقفله</button>':'')+
       (!a.done&&!agg?'<button onclick="aTog('+i+')">'+(a.open?'⏸ اقفله':'🟢 افتحه')+'</button>':'')+
       '<label class="chip" style="margin:0"><input type="file" accept="image/*" multiple onchange="aPh(this,'+i+')"><span style="display:inline-block">📷 صور</span></label>'+
       (a.elig==='المكفولين'?'<button class="p" onclick="aKf('+i+')">💰 صرف الكفالات</button>':'')+
@@ -509,7 +509,7 @@ function aSave(i){var mode=document.querySelector('input[name=aM]:checked').valu
   if(!v.name){$('aErr').textContent='اكتب اسم العطاء';return}if(i!=null)v.code=AL[i].code;
   $('aErr').innerHTML='<span class="msg">جاري الحفظ…</span>';
   call('actSave',[PIN,v],function(d){$('aForm').innerHTML='<div class="card" style="text-align:center"><div style="font-size:40px">✅</div><h2 style="color:var(--g)">'+(d.isNew?'العطاء اتعمل':'العطاء اتعدّل')+'</h2><div class="msg">'+esc(v.name)+'</div>'+
-    (!agg&&v.open?'<a class="btn" style="display:block;text-decoration:none" href="'+aStart(d.code)+'">▶ ابدأ التوزيع وسجّل المستفيدين</a>':agg?'<div class="msg">تقدر تضيف صور التوثيق من زرار «📷 صور» في كارت العطاء</div>':'<div class="msg">العطاء مقفول — افتحه لما تحب تبدأ التوزيع</div>')+'</div>';
+    '<a class="btn" style="display:block;text-decoration:none" href="'+aStart(d.code)+'">'+(agg?'➕ سجّل أسماء المستفيدين (دلوقتي أو بعدين)':'▶ ابدأ التوزيع وسجّل المستفيدين')+'</a><div class="msg">العطاء ظاهر في صفحة «توزيع العطاءات» — ومن هناك كمان تقدر تعلّمه «تم التوزيع». وصور التوثيق من زرار «📷 صور» في كارته.</div>'+'</div>';
     call('actList',[PIN],function(x){AL=x.list;aDraw()},function(){})},function(m){$('aErr').textContent=m})}
 function aDone(i){var a=AL[i],c=$('am'+i);
   c.innerHTML='<div class="le"><b>✅ إنهاء العطاء — تم التوزيع</b><div class="f2" style="margin-top:6px"><div class="f"><label class="l">عدد الأسر المستفيدة</label><input id="adN'+i+'" class="tx" inputmode="numeric" value="'+aFam(a)+'" style="direction:ltr;text-align:right"></div><div class="f"><label class="l">إجمالي القيمة (جنيه)</label><input id="adV'+i+'" class="tx" inputmode="decimal" value="'+esc(a.aggV||'')+'" style="direction:ltr;text-align:right"></div></div>'+
