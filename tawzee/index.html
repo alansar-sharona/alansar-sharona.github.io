@@ -151,13 +151,15 @@ function drawDone(){var b=$('doneBox');if(!ADMIN){b.innerHTML='';return}
   b.innerHTML=ACT.done?'<button class="btn ghost" style="font-size:15px;padding:9px" onclick="doneForm()">✏️ تعديل أرقام التوزيع</button>':'<button class="btn" style="font-size:16px;padding:11px" onclick="doneForm()">✅ تم التوزيع — اقفل العطاء وسجّل الإجمالي</button>'}
 function doneForm(){var a=ACT,n=Math.max(a.total||0,Number(a.aggN)||0),v=function(id,val){return '<input id="'+id+'" inputmode="decimal" value="'+esc(val==null?'':val)+'" style="font-size:18px;padding:9px">'};
   $('doneBox').innerHTML='<div style="border-top:1px solid #E2E8E4;margin-top:12px;padding-top:6px"><b style="color:var(--g)">✅ إنهاء العطاء — تم التوزيع</b>'+
-   '<div class="f2"><div><label class="lb">عدد الأسر المستفيدة</label>'+v('dN',n||'')+'</div><div><label class="lb">الكمية الإجمالية'+(a.unit?' ('+esc(a.unit)+')':'')+'</label>'+v('dQ',a.aggQ)+'</div></div>'+
-   '<div class="f2"><div><label class="lb">إجمالي القيمة (جنيه)</label>'+v('dV',a.aggV)+'</div><div><label class="lb">تاريخ التوزيع</label><input id="dD" type="date" value="'+esc(a.date||new Date().toISOString().slice(0,10))+'" style="font-size:16px;padding:9px"></div></div>'+
+   '<div class="f2"><div><label class="lb">عدد الأسر المستفيدة</label>'+v('dN',n||'')+'</div><div><label class="lb">نصيب كل أسرة'+(a.unit?' ('+esc(a.unit)+')':'')+'</label>'+v('dP',Number(a.per)>0?a.per:'')+'</div></div>'+
+   '<div class="f2"><div><label class="lb">الكمية الإجمالية'+(a.unit?' ('+esc(a.unit)+')':'')+'</label>'+v('dQ',a.aggQ)+'</div><div><label class="lb">المبلغ بالجنيه (اختياري)</label>'+v('dV',a.aggV)+'</div></div>'+
+   '<div class="f2"><div><label class="lb">تاريخ التوزيع</label><input id="dD" type="date" value="'+esc(a.date||new Date().toISOString().slice(0,10))+'" style="font-size:16px;padding:9px"></div><div></div></div>'+
    '<div class="msg" style="text-align:right">الأسماء تقدر تكمّل تسجيلها هنا بعد كده عادي، وهتتسجل بتاريخ التوزيع.</div>'+
-   '<div class="f2"><button class="btn ghost" onclick="drawDone()">إلغاء</button><button class="btn" id="dGo" onclick="doneSave()">💾 حفظ</button></div></div>'}
+   '<div class="f2"><button class="btn ghost" onclick="drawDone()">إلغاء</button><button class="btn" id="dGo" onclick="doneSave()">💾 حفظ</button></div></div>';
+  var f=function(){var x=Number(dNum($('dN').value)),y=Number(dNum($('dP').value));if(x>0&&y>0)$('dQ').value=String(Math.round(x*y*100)/100)};$('dN').oninput=f;$('dP').oninput=f}
 function dNum(x){return String(x||'').replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace(/[,،٬\s]/g,'').trim()}
-function doneSave(){var p={code:ACT.code,done:true,aggN:dNum($('dN').value),aggQ:dNum($('dQ').value),aggV:dNum($('dV').value),date:$('dD').value};$('dGo').disabled=true;$('dGo').textContent='جاري…';
-  call('actSave',[PIN,p],function(){ACT.done=true;ACT.open=false;ACT.aggN=p.aggN;ACT.aggQ=p.aggQ;ACT.aggV=p.aggV;ACT.date=p.date;actStats();toast('✔ اتسجّل إن العطاء تم توزيعه')},function(m){toast(m,true);$('dGo').disabled=false;$('dGo').textContent='💾 حفظ'})}
+function doneSave(){var p={code:ACT.code,done:true,aggN:dNum($('dN').value),aggQ:dNum($('dQ').value),aggV:dNum($('dV').value),qty:dNum($('dP').value),date:$('dD').value};$('dGo').disabled=true;$('dGo').textContent='جاري…';
+  call('actSave',[PIN,p],function(){ACT.done=true;ACT.open=false;ACT.aggN=p.aggN;ACT.aggQ=p.aggQ;ACT.aggV=p.aggV;ACT.per=p.qty;ACT.date=p.date;actStats();toast('✔ اتسجّل إن العطاء تم توزيعه')},function(m){toast(m,true);$('dGo').disabled=false;$('dGo').textContent='💾 حفظ'})}
 function backToActs(){stopCam();loadActs()}
 function loadRecent(){call('recent',[PIN,ACT.code],function(r){$('recent').innerHTML=r.length?r.map(function(x){return '<div><span>ملف '+esc(x.fn)+' — '+esc(x.qty)+'</span><span>'+esc(x.time)+' · '+esc(x.by)+'</span></div>'}).join(''):'<div class="msg">لسه مفيش تسليمات النهارده</div>'})}
 
