@@ -627,11 +627,38 @@ function rpForm(f,meta){f=f||{};var v=function(k){return f[k]||''},blank=!f['ر�
     rpR([rpL('موعد البحث القادم',2,'n'),rpV('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/ 20',10)])]);
   h+='<div class="ft"><ul><li>نسخة من أحدث كشف لراتب العاملين بالأسرة.</li><li>تعبئة البيانات بخط واضح.</li><li>نسخ من بطاقات الهوية لجميع أفراد الأسرة.</li><li>اي معلومات غير صحيحة تعرض صاحب الاستمارة الي شطب من اللجنة.</li></ul><div class="sp"></div><div class="qr">باركود لوكيشن المنزل</div></div></div>';
   return h}
-function rpOpen(title,body){var w=RPW||window.open('','_blank');RPW=null;if(!w){alert('المتصفح منع فتح صفحة الطباعة — اسمح بالنوافذ المنبثقة للمنصة');return}
-  w.document.open();w.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+rpE(title)+'</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet"><style>'+RP_CSS+'</style><script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"><\/script></head><body>'+body+
-   '<script>window.onload=function(){try{[].forEach.call(document.querySelectorAll("img[data-qr]"),function(im){var q=qrcode(0,"M");q.addData(im.getAttribute("data-qr"));q.make();im.src=q.createDataURL(4,0)})}catch(e){}(document.fonts?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print()},500)})}<\/script></body></html>');w.document.close()}
+var RP_LIBS=['https://unpkg.com/qrcode-generator@1.4.4/qrcode.js','https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js','https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'];
+function rpMsg_(t,err){var b=$('rpBusy');if(!b){b=document.createElement('div');b.id='rpBusy';b.style.cssText='position:fixed;left:12px;right:12px;bottom:14px;max-width:520px;margin:auto;z-index:99;background:#14713A;color:#fff;border-radius:14px;padding:12px 14px;font-weight:700;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.25)';document.body.appendChild(b)}
+  if(t==null){b.remove();return}b.style.background=err?'#C0392B':'#14713A';b.textContent=t;if(err)setTimeout(function(){if(b.parentNode)b.remove()},5000)}
+/* بيعمل ملف PDF ثابت (صفحتين A4 لكل أسرة) جوه المتصفح — نفس الشكل على الموبايل والكمبيوتر */
+function rpOpen(title,body){if(window.__rpBusy){rpMsg_('فيه ملف بيتجهز — استنى لما يخلص',1);return}window.__rpBusy=1;
+  rpMsg_('جاري تجهيز ملف PDF…');
+  var ifr=document.createElement('iframe');ifr.setAttribute('aria-hidden','true');ifr.style.cssText='position:fixed;left:-12000px;top:0;width:840px;height:1200px;border:0;opacity:0';document.body.appendChild(ifr);
+  var done=function(){window.__rpBusy=0;setTimeout(function(){if(ifr.parentNode)ifr.remove()},500)};
+  ifr.onload=function(){var w=ifr.contentWindow,d=w.document;
+    (async function(){try{
+      for(var t=0;t<100&&!(w.qrcode&&w.html2canvas&&w.jspdf);t++)await new Promise(function(r){setTimeout(r,150)});
+      if(!(w.html2canvas&&w.jspdf))throw new Error('مقدرتش أحمّل أدوات الـPDF — اتأكد من النت وجرب تاني');
+      [].forEach.call(d.querySelectorAll('img[data-qr]'),function(im){try{var q=w.qrcode(0,'M');q.addData(im.getAttribute('data-qr'));q.make();im.src=q.createDataURL(4,0)}catch(e){}});
+      if(d.fonts&&d.fonts.ready)await d.fonts.ready;
+      await Promise.all([].map.call(d.images,function(im){return im.complete?0:new Promise(function(r){im.onload=im.onerror=r})}));
+      var pgs=d.querySelectorAll('.pg'),pdf=new w.jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait',compress:true}),sc=pgs.length>40?1.4:1.8;
+      for(var i=0;i<pgs.length;i++){
+        rpMsg_('جاري تجهيز ملف PDF… صفحة '+(i+1)+' من '+pgs.length);
+        var c=await w.html2canvas(pgs[i],{scale:sc,backgroundColor:'#ffffff',logging:false,windowWidth:840});
+        if(i)pdf.addPage('a4','portrait');
+        pdf.addImage(c.toDataURL('image/jpeg',0.8),'JPEG',0,0,210,297,undefined,'FAST');
+        c.width=c.height=0;
+      }
+      var name=String(title||'استمارات').replace(/[\\\/:*?"<>|]+/g,'-')+'.pdf';
+      pdf.save(name);
+      rpMsg_('✅ الملف اتنزل: '+name+' ('+pgs.length+' صفحة)');setTimeout(function(){rpMsg_(null)},4000);
+    }catch(e){rpMsg_(e.message||'حصل خطأ في تجهيز الملف',1)}finally{done()}})();
+  };
+  var d=ifr.contentDocument;d.open();d.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet"><style>'+RP_CSS+'body{width:210mm}.pg{margin:0}</style>'+
+    RP_LIBS.map(function(u){return '<script src="'+u+'"><\/script>'}).join('')+'</head><body>'+body+'</body></html>');d.close()}
 var RPW=null;
-function rpWin(){RPW=window.open('','_blank');if(RPW)RPW.document.write('<p style="font-family:sans-serif;direction:rtl;padding:30px">جاري تجهيز الاستمارات…</p>')}
+function rpWin(){RPW=null}
 function rpBlank(){RPW=null;rpOpen('استمارة بحث فارغة',rpForm({},null))}
 function rpOne(fn){rpWin();call('famPrint',[PIN,{fn:fn}],function(d){rpOpen('استمارة بحث — ملف '+fn,d.list.map(function(f){return rpForm(f,d)}).join(''))},function(m){if(RPW)RPW.close();RPW=null;alert(m)})}
 function rpMany(){var z=$('rpZ').value,s=$('rpS').value;$('rpMsg').innerHTML='<span class="msg">جاري تجهيز الاستمارات…</span>';rpWin();
