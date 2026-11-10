@@ -43,6 +43,10 @@ input:focus{outline:none;border-color:var(--g)}
 .err{color:var(--red);font-weight:700;text-align:center;margin-top:10px}
 .list div{display:flex;justify-content:space-between;border-bottom:1px solid #EEF2EF;padding:8px 2px;font-size:15px}
 .hide{display:none!important}
+.sec{font-size:14px;font-weight:700;color:var(--mut);margin:14px 2px 8px}.act.c{border-style:dashed}.act.d{background:#F7FAF8}
+details summary{cursor:pointer;font-weight:700;color:var(--g);font-size:15px;margin:14px 2px 8px}
+.st{display:inline-block;border-radius:20px;padding:1px 8px;font-size:12px;margin-inline-start:4px;background:#EEF2EF;color:var(--mut)}.st.ok{background:var(--okbg);color:var(--g)}
+.f2{display:flex;gap:8px}.f2>*{flex:1}.lb{display:block;font-size:13px;color:var(--mut);margin:8px 2px 4px;text-align:right}
 .spin{text-align:center;padding:20px;color:var(--mut)}
 .toast{position:fixed;left:16px;right:16px;bottom:18px;max-width:488px;margin:auto;background:var(--g);color:#fff;border-radius:14px;padding:14px 16px;font-weight:700;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.2)}
 </style>
@@ -64,7 +68,7 @@ input:focus{outline:none;border-color:var(--g)}
   <!-- activities -->
   <section id="s-acts" class="hide">
     <div class="card"><h2>اختار العطاء اللي بتوزّعه</h2><div id="acts"><div class="spin">جاري التحميل…</div></div>
-      <div class="msg">العطاءات المفتوحة بس هي اللي بتظهر. الفتح والقفل من شيت «الأنشطة».</div></div>
+      <div class="msg">أي عطاء بيتعمل من «إدارة العطاءات» بيظهر هنا — تقدر تسجّل فيه المستفيدين حتى لو اتوزّع خلاص.</div></div>
   </section>
 
   <!-- scan -->
@@ -75,6 +79,7 @@ input:focus{outline:none;border-color:var(--g)}
         <button class="btn ghost" style="width:auto;margin:0;padding:6px 12px;font-size:14px" onclick="backToActs()">تغيير</button>
       </div>
       <div class="msg" id="actStats"></div>
+      <div id="doneBox"></div>
     </div>
     <div id="result"></div>
     <div class="card" id="scanCard">
@@ -92,7 +97,7 @@ input:focus{outline:none;border-color:var(--g)}
 <div id="toast" class="toast hide"></div>
 
 <script>
-var PIN = '', ACT = null, cam = null, camOn = false, busy = false, current = null;
+var PIN = '', ADMIN = false, ACT = null, cam = null, camOn = false, busy = false, current = null;
 function $(id){return document.getElementById(id)}
 function show(id){['s-login','s-acts','s-scan'].forEach(function(s){$(s).classList.toggle('hide',s!==id)})}
 function store(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
@@ -113,24 +118,46 @@ function beep(ok){try{var c=new(window.AudioContext||window.webkitAudioContext)(
 /* login */
 function doLogin(p){
   var pin=p||$('pin').value.trim(); $('loginErr').textContent='';
-  call('login',[pin],function(u){PIN=pin;store('ansar_pin',pin);$('who').textContent=u.name+' — '+u.role;$('logout').classList.remove('hide');loadActs()},
+  call('login',[pin],function(u){PIN=pin;ADMIN=u.role==='مدير النظام'||u.role==='إدارة';store('ansar_pin',pin);$('who').textContent=u.name+' — '+u.role;$('logout').classList.remove('hide');loadActs()},
     function(m){store('ansar_pin',null);show('s-login');$('loginErr').textContent=m});
 }
 function logout(){stopCam();PIN='';store('ansar_pin',null);store('ansar_act',null);$('who').textContent='';$('logout').classList.add('hide');$('pin').value='';show('s-login')}
 
 /* activities */
+function nf(x){return Number(x||0).toLocaleString('en-US')}
+function aSub(a){var agg=a.mode==='إجمالي',t=[];if(a.date)t.push(a.date);
+  if(agg||a.done){if(a.aggN)t.push(nf(a.aggN)+' أسرة');if(a.aggQ)t.push(nf(a.aggQ)+' '+(a.unit||''));t.push('بالأسماء '+nf(a.total))}else t.push(a.freq+' — '+a.elig);
+  return t.join(' · ')}
 function loadActs(){
   show('s-acts');$('acts').innerHTML='<div class="spin">جاري التحميل…</div>';
-  call('getActivities',[PIN],function(list){
-    if(!list.length){$('acts').innerHTML='<div class="msg">مفيش عطاء مفتوح للتوزيع دلوقتي.</div>';return}
+  call('getActivities',[PIN,true],function(list){
+    if(!list.length){$('acts').innerHTML='<div class="msg">مفيش عطاءات لسه — اعمل عطاء من «إدارة العطاءات» في المنصة.</div>';return}
     window._acts=list; var last=load('ansar_act');
-    $('acts').innerHTML=list.map(function(a,i){return '<div class="act" onclick="pickAct('+i+')"><div><b>'+esc(a.name)+'</b><span>'+esc(a.freq)+' — '+esc(a.elig)+'</span></div><div class="n">'+a.today+'<small>النهارده</small></div></div>'}).join('');
-    var pre=new URLSearchParams(location.search).get('act');if(pre){var j=list.findIndex(function(a){return a.code===pre});history.replaceState(null,'',location.pathname);if(j>=0){pickAct(j);return}toast('العطاء ده مقفول أو مش موجود',true)}
-    if(last){var k=list.findIndex(function(a){return a.code===last});if(k>=0&&list.length===1)pickAct(k)}
+    function row(a){var i=list.indexOf(a);return '<div class="act'+(a.done?' d':a.open?'':' c')+'" onclick="pickAct('+i+')"><div><b>'+esc(a.name)+
+      (a.done?'<span class="st ok">✅ تم التوزيع</span>':a.open?'':'<span class="st">⏸ مقفول</span>')+'</b><span>'+esc(aSub(a))+'</span></div><div class="n">'+a.today+'<small>النهارده</small></div></div>'}
+    var o=list.filter(function(a){return a.open&&!a.done}),c=list.filter(function(a){return !a.open&&!a.done}),d=list.filter(function(a){return a.done});
+    $('acts').innerHTML=(o.length?'<div class="sec">🟢 شغالة دلوقتي</div>'+o.map(row).join(''):'')+
+      (c.length?'<div class="sec">⏸ لسه ما اتعلّمتش «تم التوزيع»</div>'+c.map(row).join(''):'')+
+      (d.length?'<details'+(o.length+c.length?'':' open')+'><summary>✅ تم توزيعها ('+d.length+') — لتسجيل الأسماء بعدين</summary>'+d.map(row).join('')+'</details>':'');
+    var pre=new URLSearchParams(location.search).get('act');if(pre){var j=list.findIndex(function(a){return a.code===pre});history.replaceState(null,'',location.pathname);if(j>=0){pickAct(j);return}toast('العطاء ده مش موجود',true)}
+    if(last){var k=list.findIndex(function(a){return a.code===last});if(k>=0&&o.length===1&&o[0]===list[k])pickAct(k)}
   });
 }
-function pickAct(i){ACT=window._acts[i];store('ansar_act',ACT.code);$('actName').textContent=ACT.name;$('actFreq').textContent=ACT.freq;
-  $('actStats').textContent='اتسلّم النهارده: '+ACT.today+' — الإجمالي: '+ACT.total;$('result').innerHTML='';$('q').value='';show('s-scan');loadRecent()}
+function actStats(){var a=ACT;$('actStats').textContent='اتسجّل النهارده: '+a.today+' — بالأسماء: '+nf(a.total)+(Number(a.aggN)>a.total?' من '+nf(a.aggN)+' أسرة':'')+(a.date?' — تاريخ التوزيع: '+a.date:'');
+  $('actFreq').textContent=a.done?'✅ تم التوزيع':a.mode==='إجمالي'?'إجمالي':a.freq;drawDone()}
+function pickAct(i){ACT=window._acts[i];store('ansar_act',ACT.code);$('actName').textContent=ACT.name;
+  actStats();$('result').innerHTML='';$('q').value='';show('s-scan');loadRecent()}
+function drawDone(){var b=$('doneBox');if(!ADMIN){b.innerHTML='';return}
+  b.innerHTML=ACT.done?'<button class="btn ghost" style="font-size:15px;padding:9px" onclick="doneForm()">✏️ تعديل أرقام التوزيع</button>':'<button class="btn" style="font-size:16px;padding:11px" onclick="doneForm()">✅ تم التوزيع — اقفل العطاء وسجّل الإجمالي</button>'}
+function doneForm(){var a=ACT,n=Math.max(a.total||0,Number(a.aggN)||0),v=function(id,val){return '<input id="'+id+'" inputmode="decimal" value="'+esc(val==null?'':val)+'" style="font-size:18px;padding:9px">'};
+  $('doneBox').innerHTML='<div style="border-top:1px solid #E2E8E4;margin-top:12px;padding-top:6px"><b style="color:var(--g)">✅ إنهاء العطاء — تم التوزيع</b>'+
+   '<div class="f2"><div><label class="lb">عدد الأسر المستفيدة</label>'+v('dN',n||'')+'</div><div><label class="lb">الكمية الإجمالية'+(a.unit?' ('+esc(a.unit)+')':'')+'</label>'+v('dQ',a.aggQ)+'</div></div>'+
+   '<div class="f2"><div><label class="lb">إجمالي القيمة (جنيه)</label>'+v('dV',a.aggV)+'</div><div><label class="lb">تاريخ التوزيع</label><input id="dD" type="date" value="'+esc(a.date||new Date().toISOString().slice(0,10))+'" style="font-size:16px;padding:9px"></div></div>'+
+   '<div class="msg" style="text-align:right">الأسماء تقدر تكمّل تسجيلها هنا بعد كده عادي، وهتتسجل بتاريخ التوزيع.</div>'+
+   '<div class="f2"><button class="btn ghost" onclick="drawDone()">إلغاء</button><button class="btn" id="dGo" onclick="doneSave()">💾 حفظ</button></div></div>'}
+function dNum(x){return String(x||'').replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace(/[,،٬\s]/g,'').trim()}
+function doneSave(){var p={code:ACT.code,done:true,aggN:dNum($('dN').value),aggQ:dNum($('dQ').value),aggV:dNum($('dV').value),date:$('dD').value};$('dGo').disabled=true;$('dGo').textContent='جاري…';
+  call('actSave',[PIN,p],function(){ACT.done=true;ACT.open=false;ACT.aggN=p.aggN;ACT.aggQ=p.aggQ;ACT.aggV=p.aggV;ACT.date=p.date;actStats();toast('✔ اتسجّل إن العطاء تم توزيعه')},function(m){toast(m,true);$('dGo').disabled=false;$('dGo').textContent='💾 حفظ'})}
 function backToActs(){stopCam();loadActs()}
 function loadRecent(){call('recent',[PIN,ACT.code],function(r){$('recent').innerHTML=r.length?r.map(function(x){return '<div><span>ملف '+esc(x.fn)+' — '+esc(x.qty)+'</span><span>'+esc(x.time)+' · '+esc(x.by)+'</span></div>'}).join(''):'<div class="msg">لسه مفيش تسليمات النهارده</div>'})}
 
@@ -175,7 +202,7 @@ function render(r){
 function confirmDeliver(){
   if(busy)return; busy=true; $('okBtn').disabled=true; $('okBtn').textContent='جاري التسجيل…';
   call('deliver',[PIN,ACT.code,current.q,$('qty').value,$('note').value],function(d){
-    busy=false;beep(true);ACT.today++;ACT.total++;$('actStats').textContent='اتسلّم النهارده: '+ACT.today+' — الإجمالي: '+ACT.total;
+    busy=false;beep(true);ACT.today++;ACT.total++;actStats();
     toast('✔ اتسجّل: '+d.name+' — '+d.qty+' '+(d.unit||'')+' — '+d.time);clearRes();loadRecent();
   },function(m){busy=false;beep(false);toast(m,true);search()});
 }
