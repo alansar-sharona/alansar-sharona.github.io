@@ -471,13 +471,13 @@ function aDraw(){if(!AL)return;var o=AL.filter(function(a){return !a.done&&a.ope
   function card(a){var i=AL.indexOf(a),agg=a.mode==='إجمالي';
     return '<div class="rc"><div class="h"><b>'+esc(a.name||a.code)+'</b><small>'+(a.done?'<span class="badge ok">✅ تم التوزيع</span>':a.open?'<span class="badge ok">🟢 مفتوح</span>':'<span class="badge">⏸ مقفول</span>')+'</small></div>'+
     '<div class="m">'+esc(a.type?a.type+' — ':'')+(agg?'تسجيل إجمالي':esc(a.freq)+' — '+esc(a.elig)+(a.qty?' — '+esc(a.qty)+' '+esc(a.unit):''))+(a.date?' — '+esc(a.date):'')+
-    '<br>الأسر: <b>'+fmt(aFam(a))+'</b>'+(a.n?' (بالأسماء '+fmt(a.n)+(Number(a.aggN)>a.n?' من '+fmt(a.aggN):'')+')':'')+(a.aggQ?' — الكمية: <b>'+fmt(a.aggQ)+'</b> '+esc(a.unit):'')+(a.aggV?' — القيمة: <b>'+fmt(a.aggV)+'</b> جنيه':'')+(a.last?' — آخر تسليم '+esc(a.last):'')+
+    '<br>الأسر: <b>'+fmt(aFam(a))+'</b>'+(a.n?' (بالأسماء '+fmt(a.n)+(Number(a.aggN)>a.n?' من '+fmt(a.aggN):'')+')':'')+(a.aggQ?' — الكمية: <b>'+fmt(a.aggQ)+'</b> '+esc(a.unit)+(agg&&Number(a.qty)>0?' ('+esc(a.qty)+' لكل أسرة)':''):'')+(a.aggV?' — القيمة: <b>'+fmt(a.aggV)+'</b> جنيه':'')+(a.last?' — آخر تسليم '+esc(a.last):'')+
     (a.note?'<br>'+esc(a.note):'')+(a.photos?'<br><a href="'+esc(a.photos)+'" target="_blank" rel="noopener" style="color:var(--g)">📁 صور التوثيق</a>':'')+'</div>'+
     '<div class="ra">'+(!a.done?'<a class="p" href="'+aStart(a.code)+'">'+(agg?'➕ سجّل الأسماء':'▶ ابدأ التوزيع')+'</a>':'')+
       (!a.done?'<button class="p" onclick="aDone('+i+')">✅ تم التوزيع</button>':'')+
       (a.done?'<a class="p" href="'+aStart(a.code)+'">➕ سجّل الأسماء</a>':'')+(a.done&&a.open?'<button onclick="aTog('+i+')">⏸ اقفله</button>':'')+
       (!a.done&&!agg?'<button onclick="aTog('+i+')">'+(a.open?'⏸ اقفله':'🟢 افتحه')+'</button>':'')+
-      '<label class="chip" style="margin:0"><input type="file" accept="image/*" multiple onchange="aPh(this,'+i+')"><span style="display:inline-block">📷 صور</span></label>'+
+      '<label class="chip" style="margin:0" title="الصور والفيديو بيظهروا في الصفحة العامة"><input type="file" accept="image/*,video/*" multiple onchange="aPh(this,'+i+')"><span style="display:inline-block">📷 صور / فيديو</span></label>'+
       (a.elig==='المكفولين'?'<button class="p" onclick="aKf('+i+')">💰 صرف الكفالات</button>':'')+
       '<button onclick="aForm('+i+')">✏️ تعديل</button></div><div id="am'+i+'"></div></div>'}
   function sec(t,L){return L.length?'<div class="card msg" style="text-align:right;margin-bottom:0"><b>'+t+' ('+L.length+')</b></div>'+L.map(card).join(''):''}
@@ -495,33 +495,40 @@ function aForm(i){var a=i==null?{name:'',type:'',freq:'مرة واحدة',elig:'
    '<div class="f"><label class="l">مين يستحق؟</label>'+aSel('aE',Object.keys(AEL),a.elig,AEL)+'</div>'+
    '<div class="f2"><div class="f"><label class="l">الكمية لكل أسرة</label>'+num('aQ',a.qty)+'</div><div class="f"><label class="l">الوحدة</label><input id="aU" class="tx" placeholder="كيلو / شنطة / وجبة / جنيه" value="'+esc(a.unit)+'"></div></div>'+
    '<label class="chip" style="display:inline-block;margin:4px 0 10px"><input type="checkbox" id="aO"'+(a.open?' checked':'')+'><span>🟢 مفتوح للتوزيع</span></label></div>'+
-   '<div id="aAg"'+(agg?'':' class="hide"')+'><div class="f2"><div class="f"><label class="l">عدد الأسر المستفيدة</label>'+num('aAN',a.aggN)+'</div><div class="f"><label class="l">إجمالي القيمة (جنيه)</label>'+num('aAV',a.aggV)+'</div></div>'+
-   '<div class="f2"><div class="f"><label class="l">الكمية الإجمالية</label>'+num('aAQ',a.aggQ)+'</div><div class="f"><label class="l">الوحدة</label><input id="aAU" class="tx" placeholder="كيلو / شنطة / وجبة" value="'+esc(a.unit)+'"></div></div>'+
+   '<div id="aAg"'+(agg?'':' class="hide"')+'><div class="f2"><div class="f"><label class="l">عدد الأسر المستفيدة</label>'+num('aAN',a.aggN)+'</div><div class="f"><label class="l">الوحدة</label><input id="aAU" class="tx" placeholder="كيلو / شنطة / وجبة / جنيه" value="'+esc(a.unit)+'"></div></div>'+
+   '<div class="f2"><div class="f"><label class="l">نصيب كل أسرة (بنفس الوحدة)</label>'+num('aAP',agg&&a.qty!=null&&a.qty!==''?a.qty:'')+'</div><div class="f"><label class="l">الكمية الإجمالية</label>'+num('aAQ',a.aggQ)+'</div></div>'+
+   '<div class="f"><label class="l">المبلغ الإجمالي بالجنيه (اختياري)</label>'+num('aAV',a.aggV,'لو العطاء له قيمة مالية معروفة')+'</div>'+
    '<label class="chip" style="display:inline-block;margin:4px 0 10px"><input type="checkbox" id="aDn"'+(a.done||i==null?' checked':'')+'><span>✅ تم التوزيع</span></label></div>'+
    '<div class="f"><label class="l">ملاحظات</label><input id="aNo" class="tx" value="'+esc(a.note||'')+'"></div>'+
    '<div class="err" id="aErr"></div><div class="ra"><button onclick="$(\'aForm\').innerHTML=\'\'">إلغاء</button><button class="p" onclick="aSave('+(i==null?'null':i)+')">💾 حفظ</button></div></div>';
-  $('aN').focus();window.scrollTo(0,$('aForm').offsetTop-10)}
+  aTot('aAN','aAP','aAQ');$('aN').focus();window.scrollTo(0,$('aForm').offsetTop-10)}
+/* الكمية الإجمالية = عدد الأسر × نصيب كل أسرة (تلقائي، وتقدر تعدّلها) */
+function aTot(n,p,q){var N=$(n),P=$(p),Q=$(q);if(!N||!P||!Q)return;var f=function(){var a=Number(aNum(N.value)),b=Number(aNum(P.value));if(a>0&&b>0)Q.value=String(Math.round(a*b*100)/100)};N.oninput=f;P.oninput=f}
 function aNum(x){return String(x||'').replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace(/[,،٬\s]/g,'').trim()}
 function aSave(i){var mode=document.querySelector('input[name=aM]:checked').value,agg=mode==='إجمالي';
   var v={name:$('aN').value.trim(),type:$('aT').value,mode:mode,date:$('aD').value,note:$('aNo').value.trim()};
-  if(agg){v.aggN=aNum($('aAN').value);v.aggV=aNum($('aAV').value);v.aggQ=aNum($('aAQ').value);v.unit=$('aAU').value.trim();v.done=$('aDn').checked;v.open=false}
+  if(agg){v.aggN=aNum($('aAN').value);v.aggV=aNum($('aAV').value);v.aggQ=aNum($('aAQ').value);v.qty=aNum($('aAP').value);v.unit=$('aAU').value.trim();v.done=$('aDn').checked;v.open=false}
   else{v.freq=$('aF').value;v.elig=$('aE').value;v.qty=aNum($('aQ').value);v.unit=$('aU').value.trim();v.open=$('aO').checked}
   if(!v.name){$('aErr').textContent='اكتب اسم العطاء';return}if(i!=null)v.code=AL[i].code;
   $('aErr').innerHTML='<span class="msg">جاري الحفظ…</span>';
   call('actSave',[PIN,v],function(d){$('aForm').innerHTML='<div class="card" style="text-align:center"><div style="font-size:40px">✅</div><h2 style="color:var(--g)">'+(d.isNew?'العطاء اتعمل':'العطاء اتعدّل')+'</h2><div class="msg">'+esc(v.name)+'</div>'+
-    '<a class="btn" style="display:block;text-decoration:none" href="'+aStart(d.code)+'">'+(agg?'➕ سجّل أسماء المستفيدين (دلوقتي أو بعدين)':'▶ ابدأ التوزيع وسجّل المستفيدين')+'</a><div class="msg">العطاء ظاهر في صفحة «توزيع العطاءات» — ومن هناك كمان تقدر تعلّمه «تم التوزيع». وصور التوثيق من زرار «📷 صور» في كارته.</div>'+'</div>';
+    '<a class="btn" style="display:block;text-decoration:none" href="'+aStart(d.code)+'">'+(agg?'➕ سجّل أسماء المستفيدين (دلوقتي أو بعدين)':'▶ ابدأ التوزيع وسجّل المستفيدين')+'</a><div class="msg">العطاء ظاهر في صفحة «توزيع العطاءات» — ومن هناك كمان تقدر تعلّمه «تم التوزيع». وصور وفيديو التوثيق من زرار «📷 صور / فيديو» في كارته — وبيظهروا في الصفحة العامة.</div>'+'</div>';
     call('actList',[PIN],function(x){AL=x.list;aDraw()},function(){})},function(m){$('aErr').textContent=m})}
 function aDone(i){var a=AL[i],c=$('am'+i);
-  c.innerHTML='<div class="le"><b>✅ إنهاء العطاء — تم التوزيع</b><div class="f2" style="margin-top:6px"><div class="f"><label class="l">عدد الأسر المستفيدة</label><input id="adN'+i+'" class="tx" inputmode="numeric" value="'+aFam(a)+'" style="direction:ltr;text-align:right"></div><div class="f"><label class="l">إجمالي القيمة (جنيه)</label><input id="adV'+i+'" class="tx" inputmode="decimal" value="'+esc(a.aggV||'')+'" style="direction:ltr;text-align:right"></div></div>'+
-   '<div class="f"><label class="l">الكمية الإجمالية'+(a.unit?' ('+esc(a.unit)+')':'')+'</label><input id="adQ'+i+'" class="tx" inputmode="decimal" value="'+esc(a.aggQ||'')+'" style="direction:ltr;text-align:right"></div>'+
+  c.innerHTML='<div class="le"><b>✅ إنهاء العطاء — تم التوزيع</b><div class="f2" style="margin-top:6px"><div class="f"><label class="l">عدد الأسر المستفيدة</label><input id="adN'+i+'" class="tx" inputmode="numeric" value="'+aFam(a)+'" style="direction:ltr;text-align:right"></div><div class="f"><label class="l">نصيب كل أسرة'+(a.unit?' ('+esc(a.unit)+')':'')+'</label><input id="adP'+i+'" class="tx" inputmode="decimal" value="'+esc(a.qty||'')+'" style="direction:ltr;text-align:right"></div></div>'+
+   '<div class="f2"><div class="f"><label class="l">الكمية الإجمالية'+(a.unit?' ('+esc(a.unit)+')':'')+'</label><input id="adQ'+i+'" class="tx" inputmode="decimal" value="'+esc(a.aggQ||'')+'" style="direction:ltr;text-align:right"></div><div class="f"><label class="l">المبلغ الإجمالي بالجنيه (اختياري)</label><input id="adV'+i+'" class="tx" inputmode="decimal" value="'+esc(a.aggV||'')+'" style="direction:ltr;text-align:right"></div></div>'+
    '<div class="f"><label class="l">تاريخ التوزيع</label><input id="adD'+i+'" class="tx" type="date" value="'+esc(a.date||new Date().toISOString().slice(0,10))+'"></div>'+
-   '<div class="ra"><button onclick="$(\'am'+i+'\').innerHTML=\'\'">إلغاء</button><button class="p" onclick="aDoneGo('+i+')">✅ تأكيد</button></div><div class="err" id="adE'+i+'"></div></div>'}
+   '<div class="ra"><button onclick="$(\'am'+i+'\').innerHTML=\'\'">إلغاء</button><button class="p" onclick="aDoneGo('+i+')">✅ تأكيد</button></div><div class="err" id="adE'+i+'"></div></div>';aTot('adN'+i,'adP'+i,'adQ'+i)}
 function aDoneGo(i){var a=AL[i];$('adE'+i).innerHTML='<span class="msg">جاري…</span>';
-  call('actSave',[PIN,{code:a.code,done:true,aggN:aNum($('adN'+i).value),aggV:aNum($('adV'+i).value),aggQ:aNum($('adQ'+i).value),date:$('adD'+i).value}],function(){call('actList',[PIN],function(x){AL=x.list;aDraw()},function(){})},function(m){$('adE'+i).textContent=m})}
+  call('actSave',[PIN,{code:a.code,done:true,aggN:aNum($('adN'+i).value),aggV:aNum($('adV'+i).value),aggQ:aNum($('adQ'+i).value),qty:aNum($('adP'+i).value),date:$('adD'+i).value}],function(){call('actList',[PIN],function(x){AL=x.list;aDraw()},function(){})},function(m){$('adE'+i).textContent=m})}
 function aNames(i){var a=AL[i];if(!confirm('فتح «'+a.name+'» تاني عشان تسجّل أسماء المستفيدين؟ هيفضل متعلّم «تم التوزيع»، والتسليمات هتتسجل بتاريخ التوزيع.'))return;
   call('actSave',[PIN,{code:a.code,open:true}],function(){a.open=true;aDraw()},function(m){alert(m)})}
-function aPh(inp,i){var a=AL[i],fs=[].slice.call(inp.files||[]),c=$('am'+i),out=[];if(!fs.length)return;c.innerHTML='<div class="msg">جاري تجهيز '+fs.length+' صورة…</div>';
-  (function nx(k){if(k>=fs.length){c.innerHTML='<div class="msg">جاري رفع الصور…</div>';call('actPhotos',[PIN,a.code,out],function(d){a.photos=d.url;aDraw();var cc=$('am'+i);if(cc)cc.innerHTML='<div class="msg" style="color:var(--g)">✅ الصور اترفعت ('+d.n+' صورة في الفولدر)</div>'},function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'});return}
+function aPh(inp,i){var a=AL[i],fs=[].slice.call(inp.files||[]),c=$('am'+i),out=[];if(!fs.length)return;
+  var big=fs.filter(function(f){return /^video\//.test(f.type)&&f.size>25e6});if(big.length){c.innerHTML='<div class="err">الفيديو كبير ('+Math.round(big[0].size/1e6)+' ميجا) — الحد 25 ميجا. قصّه أو ابعته بجودة أقل.</div>';inp.value='';return}
+  if(!confirm('الصور والفيديو دول هيظهروا للناس في الصفحة العامة جنب «'+a.name+'». متأكد إنهم مناسبين للنشر؟'))return;
+  c.innerHTML='<div class="msg">جاري تجهيز '+fs.length+' ملف…</div>';
+  (function nx(k){if(k>=fs.length){c.innerHTML='<div class="msg">جاري رفع الصور…</div>';call('actPhotos',[PIN,a.code,out],function(d){a.photos=d.url;aDraw();var cc=$('am'+i);if(cc)cc.innerHTML='<div class="msg" style="color:var(--g)">✅ اترفعت وهتظهر في الصفحة العامة ('+d.n+' ملف في الفولدر)</div>'},function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'});return}
+   if(/^video\//.test(fs[k].type)){var rv=new FileReader();rv.onload=function(){out.push({name:a.code+'-'+Date.now()+'-'+k+'.'+((fs[k].name.split('.').pop()||'mp4').toLowerCase()),b64:String(rv.result).split(',')[1],mime:fs[k].type});nx(k+1)};rv.onerror=function(){nx(k+1)};rv.readAsDataURL(fs[k]);return}
    var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,1600/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
      out.push({name:a.code+'-'+Date.now()+'-'+k+'.jpg',b64:cv.toDataURL('image/jpeg',0.8).split(',')[1],mime:'image/jpeg'});nx(k+1)};im.onerror=function(){nx(k+1)};im.src=rd.result};rd.readAsDataURL(fs[k])})(0)}
 function aKf(i){var c=$('am'+i),m=new Date().toISOString().slice(0,7);
