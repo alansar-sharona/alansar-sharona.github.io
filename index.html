@@ -207,16 +207,18 @@ window.lvShow=function(i,j){var m=LV[i],c=document.getElementById('md'+i),p=j<0;
  var b=document.querySelectorAll('#th'+i+' button');for(var k=0;k<b.length;k++)b[k].className=(m.media[k][0]==='v'?'v':'')+(k===j?' on':'')};
 function med(a,i){var m=a.media||[];if(!m.length)return '';a.cur=0;
  return '<div class="med" id="md'+i+'">'+mv(m[0],i,false)+'</div>'+(m.length>1?'<div class="th" id="th'+i+'">'+m.map(function(x,j){return '<button class="'+(x[0]==='v'?'v':'')+(j?'':' on')+'" onclick="lvShow('+i+','+j+')"><img loading="lazy" src="'+T(x,200)+'" alt=""></button>'}).join('')+'</div>':'')}
+function mo(L){var Y={},o=[];(L||[]).forEach(function(p){var a=p.split('-');(Y[a[0]]=Y[a[0]]||[]).push(M[+a[1]-1])});
+ Object.keys(Y).sort().forEach(function(y){var m=Y[y];o.push((m.length>1?m.slice(0,-1).join('، ')+' و'+m[m.length-1]:m[0])+' '+y)});return o.join('، ')}
 function hide(){document.getElementById('live').style.display='none';var a=document.querySelector('a[href="#live"]');if(a)a.style.display='none'}
 fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn:'pubStats',args:[]})})
  .then(function(r){return r.json()}).then(function(j){
   if(!j.ok||!j.data||!j.data.list.length)return hide();
   var d=j.data,y=String(new Date().getFullYear()),Y=d.years[y];
-  document.getElementById('lvTot').innerHTML=Y?'<div><b>'+n(Y.ben)+'</b><span>استفادة لأسر الجمعية في '+y+'</span></div><div><b>'+n(Y.acts)+'</b><span>عطاء اتوزّع في '+y+'</span></div>'+(Y.val?'<div><b>'+n(Y.val)+'</b><span>جنيه قيمة العطاءات في '+y+'</span></div>':''):'';
+  document.getElementById('lvTot').innerHTML=Y?(Y.acts?'<div><b>'+n(Y.ben)+'</b><span>استفادة لأسر الجمعية في '+y+'</span></div><div><b>'+n(Y.acts)+'</b><span>عطاء اتوزّع في '+y+'</span></div>':'')+(Y.km?'<div><b>'+n(Y.km)+'</b><span>'+(Y.km>2&&Y.km<11?'شهور':'شهر')+' كفالات اتصرفت في '+y+'</span></div>':''):'';
   LV=d.list.slice(0,6);
   document.getElementById('lvList').innerHTML=LV.map(function(a,i){
-   return '<div class="lv">'+med(a,i)+'<span class="bd'+(a.live?' on':'')+'">'+(a.live?'🟢 التوزيع شغال':a.kind==='كفالة'?'🤝 كفالة شهرية':'✅ تم التوزيع')+'</span><h3>'+e(a.name)+'</h3>'+(a.date?'<span class="dt">'+dt(a.date)+'</span>':'')+
-    '<div class="nums"><div><b>'+n(a.fam)+'</b><span>أسرة</span></div>'+(a.qty?'<div><b>'+n(a.qty)+'</b><span>'+e(a.unit||'')+'</span></div>':'')+(a.val?'<div><b>'+n(a.val)+'</b><span>جنيه</span></div>':'')+'</div>'+(a.per?'<span class="per">نصيب كل أسرة: '+n(a.per)+' '+e(a.unit||'')+'</span>':'')+'</div>'}).join('');
+   return '<div class="lv">'+med(a,i)+'<span class="bd'+(a.live&&a.kind!=='كفالة'?' on':'')+'">'+(a.kind==='كفالة'?'🤝 كفالة شهرية':a.live?'🟢 التوزيع شغال':'✅ تم التوزيع')+'</span><h3>'+e(a.name)+'</h3>'+(a.kind==='كفالة'?(a.months&&a.months.length?'<span class="dt">'+(a.months.length>3?'تم صرف كفالات '+a.months.length+' شهر — من '+mo([a.months[0]])+' لحد '+mo([a.months[a.months.length-1]]):'تم صرف كفالات شهر '+mo(a.months))+'</span>':''):(a.date?'<span class="dt">'+dt(a.date)+'</span>':''))+
+    '<div class="nums"><div><b>'+n(a.fam)+'</b><span>'+(a.kind==='كفالة'?'أسرة مكفولة':'أسرة')+'</span></div>'+(a.qty?'<div><b>'+n(a.qty)+'</b><span>'+e(a.unit||'')+'</span></div>':'')+(a.val&&a.kind!=='كفالة'?'<div><b>'+n(a.val)+'</b><span>جنيه</span></div>':'')+'</div>'+(a.per?'<span class="per">نصيب كل أسرة: '+n(a.per)+' '+e(a.unit||'')+'</span>':'')+'</div>'}).join('');
  }).catch(hide);
 })();
 </script>
