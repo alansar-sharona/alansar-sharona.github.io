@@ -532,82 +532,104 @@ function aKfPay(i){var a=AL[i],m=$('kfM'+i).value;if(!confirm('تسجيل صرف
   call('kfMonth',[PIN,a.code,m,true],function(d){$('kfS'+i).innerHTML='<span style="color:var(--g);font-weight:700">✅ اتسجل صرف '+d.added+' كفالة لشهر '+esc(m)+' — إجمالي الشهر: '+d.paid+' من '+d.total+'</span>'},function(e){$('kfS'+i).innerHTML='<span class="err">'+esc(e)+'</span>'})}
 function aTog(i){var a=AL[i];$('am'+i).innerHTML='<div class="msg">جاري…</div>';
   call('actSave',[PIN,{code:a.code,open:!a.open}],function(){a.open=!a.open;aDraw()},function(m){$('am'+i).innerHTML='<div class="err">'+esc(m)+'</div>'})}
-/* ===== طباعة استمارات البحث (من بيانات المنصة وقت الطباعة) ===== */
-var RP_CSS='@page{size:A4;margin:9mm 8mm}*{box-sizing:border-box}body{font-family:"Noto Sans Arabic",Tahoma,sans-serif;direction:rtl;margin:0;color:#000;font-size:10.5px;line-height:1.25;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
- '.pg{page-break-after:always;break-after:page}.pg:last-child{page-break-after:auto;break-after:auto}'+
- '.hd{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #00B050;padding-bottom:4px;margin-bottom:4px}.hd .o{font-size:10px;line-height:1.5}.hd .o b{font-size:13px}.hd h1{font-size:19px;margin:0}.hd img{width:50px;height:48px}'+
- 'h3{font-size:11.5px;margin:6px 0 3px;text-decoration:underline}table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:2px}td,th{border:1px solid #444;padding:2px 4px;height:21px;vertical-align:middle;word-wrap:break-word}'+
- '.y{background:#FFFF99;font-weight:700}.g{background:#00B050;font-weight:700}.n{background:#BDD7EE;font-weight:700}.d{color:#0B3D91;font-weight:700}.c{text-align:center}.t td{height:25px}'+
- '.ft{display:flex;gap:10px;margin-top:6px;align-items:stretch}.ft ul{flex:1;margin:0;padding-right:16px;font-size:9.5px;line-height:1.7}.ft .qr{width:90px;border:1px solid #444;text-align:center;font-size:9px;color:#1F5FA8;font-weight:700;padding-top:4px}'+
- '.meta{font-size:8.5px;color:#666;text-align:left;margin-top:3px}.dots td{height:20px;border-bottom:1px dotted #888}';
+/* ===== طباعة استمارات البحث — نفس تصميم الاستمارة الورقية (صفحتين A4) ===== */
+var RP_CSS='@page{size:A4;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:"Noto Sans Arabic",Tahoma,sans-serif;direction:rtl;color:#000;font-size:8.5pt;line-height:1.3;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+ '.pg{width:210mm;height:296.8mm;padding:5.3mm 11.9mm 6.3mm;overflow:hidden;page-break-after:always;break-after:page;position:relative}.pg:last-child{page-break-after:auto;break-after:auto}'+
+ '.hd{display:flex;align-items:center;height:16.4mm}.hd .o{width:65.3mm;line-height:1.35}.hd .o b{font-size:11pt}.hd h1{flex:1;text-align:center;font-size:14pt;margin:0}.hd .im{width:56.4mm;text-align:left;display:flex;justify-content:flex-end;align-items:center;gap:3mm;direction:ltr}'+
+ '.hd .im img{height:16mm}.hd .im img.qr{height:15mm;width:15mm}.rule{border-bottom:1.1pt solid #00B050;margin:0 0 1.6mm}'+
+ 'h3{font-size:9pt;margin:1.06mm 0 .53mm;text-decoration:underline;font-weight:700}h3 i{font-style:normal;color:#C00000;font-size:7.5pt;text-decoration:none;margin-right:4mm}'+
+ 'table{width:186.3mm;border-collapse:collapse;table-layout:fixed}td,th{border:.5pt solid #000;padding:.18mm .88mm;vertical-align:middle;text-align:right;word-wrap:break-word;overflow:hidden;font-weight:400}'+
+ 'tr{height:5.82mm}tr.h2{height:6.7mm}tr.h3{height:7.41mm}tr.h4{height:8.47mm}tr.h5{height:9.88mm}tr.hh{height:9.17mm}tr.hi{height:5.64mm}'+
+ '.y{background:#FFFF99;font-weight:700}.g{background:#00B050;font-weight:700}.n{background:#BDD7EE;font-weight:700}.d{color:#0B3D91;font-weight:700}.c{text-align:center}'+
+ '.m td,.m th,.i td,.i th{font-size:7.5pt}.m th,.i th{text-align:center;font-weight:700}.i td.g,.i td.n,.i td.y{text-align:right}'+
+ '.dots td{border-top:0;border-bottom:0;text-align:center;color:#444;letter-spacing:.3px}.dots tr:first-child td{border-top:.5pt solid #000;font-weight:700;text-align:right;color:#000;letter-spacing:0}'+
+ '.gap{height:1.1mm}.ft{width:186.3mm;height:29.1mm;display:flex;align-items:stretch;margin-top:1.1mm}.ft ul{width:129.8mm;margin:auto 0;padding:0 4mm 0 0;font-size:7.5pt;line-height:1.6;list-style:none}.ft ul li:before{content:"-  "}'+
+ '.ft .sp{flex:1}.ft .qr{width:28.2mm;border:.5pt solid #000;text-align:center;font-size:7pt;font-weight:700;color:#1F5FA8;padding-top:.5mm}'+
+ '.m.mm tr.h2{height:5.2mm}.m.mm td{font-size:7pt}.meta{position:absolute;left:11.9mm;bottom:2mm;font-size:6.5pt;color:#888}';
 function rpE(s){return esc(s==null?'':String(s))}
-function rpN(s){return String(s||'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').trim()}
-function rpCB(list,sel){sel=rpN(sel);return list.map(function(x){var xn=rpN(x),on=sel&&(sel===xn||sel.split(/[،,\s]+/).indexOf(xn)>=0||(xn.length>2&&sel.indexOf(xn)>=0));return (on?'☒ ':'☐ ')+x}).join('&nbsp;&nbsp;&nbsp;')}
-function rpRow(cells){return '<tr>'+cells.map(function(c){return '<td colspan="'+(c[1]||1)+'" class="'+(c[2]||'')+'">'+(c[0]==null?'':c[0])+'</td>'}).join('')+'</tr>'}
-function rpTbl(rows){return '<table><colgroup>'+Array(12).fill('<col>').join('')+'</colgroup>'+rows.join('')+'</table>'}
-function rpForm(f,meta){f=f||{};var v=function(k){return rpE(f[k]||'')},blank=!f['رقم_الملف'];
-  var reg=(f['المنطقة']||'').indexOf('شرق')===0?'شرق':(f['المنطقة']||'');
+function rpN(s){return String(s||'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ').trim()}
+/* مربعات اختيار — sel ممكن تكون قيمة واحدة أو أكتر مفصولين بفاصلة */
+function rpCB(list,sel){var S=rpN(sel),parts=S?S.split(/\s*[،,]\s*/):[];return list.map(function(x){var xn=rpN(x),on=!!S&&(parts.indexOf(xn)>=0||S===xn||(xn.length>2&&S.indexOf(xn.replace(/\s*\(.*\)$/,''))===0));return (on?'☒ ':'☐ ')+rpE(x)}).join('&nbsp;&nbsp;&nbsp;&nbsp;')}
+function rpC(t,span,cls){return '<td'+(span>1?' colspan="'+span+'"':'')+(cls?' class="'+cls+'"':'')+'>'+(t==null?'':t)+'</td>'}
+function rpL(t,span,k){return rpC(String(t).replace(/\|/g,'<br>'),span,k||'y')}
+function rpD(t,span){return rpC(rpE(t),span,'d')}
+function rpV(t,span){return rpC(t==null?'':t,span,'')}
+function rpR(cells,cls){return '<tr'+(cls?' class="'+cls+'"':'')+'>'+cells.join('')+'</tr>'}
+function rpT(rows,cls){return '<table'+(cls?' class="'+cls+'"':'')+'><colgroup>'+Array(13).join('<col>')+'</colgroup>'+rows.join('')+'</table>'}
+function rpHead(f){var id=f&&f['رقم_الملف']?(f['ID']||('ANS-2026-'+f['رقم_الملف'])):'';
+  return '<div class="hd"><div class="o"><b>جمعية الأنصار بشارونة</b><br>مشهرة برقم 2379 لسنة 2012م<br>لجنة البحث الاجتماعي</div><h1>استمارة بحث اجتماعي</h1><div class="im">'+
+    (id?'<img class="qr" data-qr="'+rpE(id)+'" alt="">':'')+'<img src="'+(document.querySelector('img.logo')||{}).src+'" alt=""></div></div><div class="rule"></div>'}
+function rpForm(f,meta){f=f||{};var v=function(k){return f[k]||''},blank=!f['رقم_الملف'];
+  var reg=(v('المنطقة').indexOf('شرق')===0)?'شرق':v('المنطقة'),zone=v('منطقة_التوزيع')||(reg==='شرق'?'':reg);
   var regL={'بحري':'بحري (1)','قبلي':'قبلي (2)','شرق':'شرق (3)','وسط':'وسط (4)'}[reg]||'';
-  var h='<div class="pg"><div class="hd"><div class="o"><b>جمعية الأنصار بشارونة</b><br>مشهرة برقم 2379 لسنة 2012م<br>لجنة البحث الاجتماعي</div><h1>استمارة بحث اجتماعي</h1><img src="'+(document.querySelector('img.logo')||{}).src+'"></div>';
-  h+='<h3>بيانات الملف والبحث :</h3>'+rpTbl([
-    rpRow([['رقم الملف',2,'n'],[v('رقم_الملف'),2,'d'],['نوع البحث',2,'n'],[rpCB(['جديد','تحديث'],blank?'':'تحديث'),3],['تاريخ البحث',1,'n'],['&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;/ 20',2]]),
-    rpRow([['اسم الباحث',2,'n'],['',5],['تليفون الباحث',2,'n'],['',3]]),
-    rpRow([['مصدر الترشيح',2,'n'],[rpCB(['بحث ميداني','شخص ثقة','تقدّم بنفسه','أخرى'],f['مصدر_الترشيح']),10]]),
-    rpRow([['اسم المرشِّح وصلته',2,'n'],[v('اسم_المرشح'),10,'d']]),
-    rpRow([['المنطقة',2,'n'],[rpCB(['بحري (1)','قبلي (2)','شرق (3)','وسط (4)'],regL),10]]),
-    rpRow([['منطقة التوزيع',2,'n'],[rpCB(['بحري','قبلي','شرق ب','شرق ق','وسط'],f['منطقة_التوزيع']),10]])]);
-  h+='<h3>أولا : بيانات الأسرة :</h3>'+rpTbl([
-    rpRow([['اسم المستفيد رباعي',3,'y'],[v('اسم_رب_الأسرة'),9,'d']]),
-    rpRow([['رقم البطاقة',3,'y'],[v('الرقم_القومي'),9,'d']]),
-    rpRow([['رقم الهاتف',3,'y'],[v('الهاتف'),4,'d'],['عمل رب الاسرة',2,'g'],[v('عمل_رب_الأسرة'),3,'d']]),
-    rpRow([['هاتف بديل',3,'n'],[v('هاتف_بديل'),4,'d'],['صاحبه وصلته',2,'n'],[v('صاحب_الهاتف_البديل'),3,'d']]),
-    rpRow([['الجنس',2,'y'],[rpCB(['ذكر','انثى'],f['الجنس']),3],['الحالة الاجتماعية',2,'g'],[rpCB(['متزوج','ارمل','مطلق','اعزب'],f['الحالة_الاجتماعية']),5]]),
-    rpRow([['الحالة الصحية لرب الأسرة',3,'g'],[rpCB(['معافي','مريض'],f['الحالة_الصحية']),3],['نوع المرض',2,'g'],[rpCB(['مزمن','إعاقة'],f['نوع_المرض']),4]]),
-    rpRow([['وصف الحالة الصحية',3,'y'],[v('وصف_الحالة_الصحية'),9,'d']]),
-    rpRow([['عدد الافراد',1,'y'],[v('عدد_الأفراد'),1,'d c'],['عدد الاطفال',1,'g'],[v('عدد_الأطفال'),1,'d c'],['عدد طلاب المدارس',2,'g'],[v('طلاب_المدارس'),1,'d c'],['عدد طلاب الجامعة',2,'g'],[v('طلاب_الجامعة'),1,'d c'],['عدد المرضي',1,'g'],[v('عدد_المرضى'),1,'d c']]),
-    rpRow([['قريب مسجّل بالجمعية؟',3,'n'],[rpCB(['لا','نعم'],f['رقم_ملف_قريب_مسجل']?'نعم':''),2],['رقم ملفه',2,'n'],[v('رقم_ملف_قريب_مسجل'),2,'d'],['صلته',1,'n'],['',2]])]);
-  var hs=f['نوع_السكن']||'';
-  h+='<h3>ثانيا : بيانات السكن :</h3>'+rpTbl([
-    rpRow([['المنطقة',2,'y'],[rpE(f['المنطقة']||''),2,'d'],['الشارع / الحارة',2,'n'],[v('الشارع_الحارة'),6,'d']]),
-    rpRow([['علامة مميزة (بجوار)',2,'n'],[v('علامة_مميزة'),10,'d']]),
-    rpRow([['العنوان / وصف الوصول',2,'n'],[v('العنوان_الوصفي'),10,'d']]),
-    rpRow([['نوع السكن',2,'y'],[rpCB(['تمليك','ايجار','مع العائلة','بدون'],hs),6],['قيمة الإيجار الشهري',2,'n'],[v('قيمة_الإيجار'),2,'d']]),
-    rpRow([['عدد الغرف',2,'n'],[v('عدد_الغرف'),2,'d'],['حالة المبنى',2,'n'],[rpCB(['جيد','متوسط','آيل'],f['حالة_المبنى']),6]]),
-    rpRow([['السقف',2,'n'],[rpCB(['خرسانة','خشب','جريد / بوص'],f['السقف']),4],['الحوائط',2,'n'],[rpCB(['طوب أحمر','طوب ني'],f['الحوائط']),4]]),
-    rpRow([['المرافق',2,'n'],[rpCB(['مياه','كهرباء','صرف صحي','غاز'],f['المرافق']),10]]),
-    rpRow([['الأجهزة والكماليات',2,'y'],[rpCB(['ثلاجة','غسالة','سخان','فرن','بوتاجاز','فريزر','سجاد','تلفزيون','مروحة','أخرى'],f['كماليات_السكن']),10]]),
-    rpRow([['اللوكيشن',2,'n'],[(f['اللوكيشن']?'<span style="font-size:8.5px;direction:ltr;unicode-bidi:embed">'+v('اللوكيشن')+'</span>':''),10,'d']])]);
-  var M=(f.members||[]).slice(),n=Math.max(10,M.length);
-  h+='<h3>ثالثا : بيانات أفراد الأسرة :</h3><table class="t"><colgroup><col style="width:4%"><col style="width:21%"><col style="width:9%"><col style="width:15%"><col style="width:5%"><col style="width:9%"><col style="width:10%"><col style="width:7%"><col style="width:9%"><col style="width:11%"></colgroup>'+
-    '<tr><th class="y">م</th><th class="y">الاسم</th><th class="n">صلة القرابة</th><th class="y">الرقم القومي</th><th class="n">السن</th><th class="n">الدراسة / المرحلة</th><th class="y">المهنة</th><th class="y">الراتب</th><th class="n">الحالة الصحية</th><th class="y">ملاحظات</th></tr>';
-  for(var i=0;i<n;i++){var m=M[i]||{};h+='<tr><td class="c">'+(i+1)+'</td><td class="d">'+rpE(m.name)+'</td><td class="d">'+rpE(m.rel)+'</td><td class="d" style="font-size:9.5px">'+rpE(m.nid)+'</td><td class="d c">'+rpE(m.age)+'</td><td class="d">'+rpE(m.edu)+'</td><td class="d">'+rpE(m.job)+'</td><td class="d">'+rpE(m.sal)+'</td><td class="d">'+rpE(m.health)+'</td><td class="d">'+rpE(m.note)+'</td></tr>'}
-  h+='</table></div><div class="pg">';
-  var inc=[['الراتب/تقاعد','g','راتب_معاش'],['تأمينات','n','تأمينات'],['مساعدات الشئون','g','مساعدات_الشئون'],['حياة كريمة','g','حياة_كريمة'],['أيتام/أرامل','g','أيتام_أرامل'],['نفقة','g','نفقة'],['تكافل وكرامة','n','تكافل_وكرامة'],['عمل يومية / موسمي','n',''],['دعم أقارب','n',''],['دخل آخر','n','دخل_آخر']],
-      obl=[['إيجار','g'],['قسط بناء','g'],['قسط علاج','g'],['قسط دراسة','g'],['جمعية','g'],['علاج شهري مستمر','n'],['ديون','n'],['',''],['',''],['','']];
-  h+='<h3>رابعا : بيانات الإيرادات والالتزامات المالية :</h3><table class="t"><colgroup><col style="width:4%"><col style="width:16%"><col style="width:6%"><col style="width:9%"><col style="width:4%"><col style="width:13%"><col style="width:10%"><col style="width:9%"><col style="width:11%"><col style="width:18%"></colgroup>'+
-    '<tr><th class="y">م</th><th class="y">دخل الأسرة</th><th class="n">يوجد</th><th class="y">المبلغ</th><th class="y">م</th><th class="y">بيان الالتزام</th><th class="y">المبلغ الكلي</th><th class="y">القسط الشهري</th><th class="y">ينتهي في</th><th class="y">ملاحظات</th></tr>';
-  for(i=0;i<10;i++){var a=inc[i][2]?String(f[inc[i][2]]||'').replace(/^0$/,''):'';h+='<tr><td class="c">'+(i+1)+'</td><td class="'+inc[i][1]+'">'+inc[i][0]+'</td><td class="d c">'+(a?'✓':'')+'</td><td class="d c">'+rpE(a)+'</td><td class="c">'+(i+1)+'</td><td class="'+obl[i][1]+'">'+obl[i][0]+'</td><td></td><td></td><td></td><td></td></tr>'}
-  h+='</table>'+rpTbl([
-    rpRow([['مجموع الإيرادات',3,'g'],[v('مجموع_الإيرادات'),1,'d c'],['مجموع الالتزامات',3,'g'],[v('مجموع_الالتزامات'),1,'d c'],['صافي الدخل',2,'g'],[v('صافي_الدخل'),2,'d c']]),
-    rpRow([['أصول / ممتلكات',3,'n'],[f['أصول']?'<span class="d">'+v('أصول')+'</span>':rpCB(['أرض زراعية (مساحة: ......)','مواشي (عدد: ......)','محل / مشروع','أخرى'],''),9]])]);
-  var cur=[f['التصنيف']?'التصنيف الحالي: '+f['التصنيف']:'',f['حالة_الملف']?'حالة الملف: '+f['حالة_الملف']:'',f._res&&f._res.date?'آخر بحث: '+f._res.date+(f._res.by?' — '+f._res.by:''):''].filter(String).join('  —  ');
-  h+='<h3>خامسا : التصنيف :</h3>'+rpTbl([
-    rpRow([['الوضع الحالي',3,'n'],[rpE(cur),9,'d']]),
-    rpRow([['تقدير الباحث',3,'n'],[rpCB(['أ','ب','ج','د'],''),9]]),
-    rpRow([['ملاحظات المعاينة (ما لا يظهر في البيانات)',3,'n'],[f['ملاحظات']?'ملاحظة سابقة: '+v('ملاحظات'):'',9,'d']]).replace('<tr>','<tr style="height:42px">'),
-    rpRow([['سبب الاختلاف عن التصنيف الحالي',3,'n'],['',9]]).replace('<tr>','<tr style="height:36px">')]);
-  h+='<h3>سادسا : نتائج البحث :</h3><table class="dots"><tr><td colspan="12" style="border:1px solid #444;font-weight:700">نتائج البحث وملاحظات اللجنة:</td></tr>'+[1,2,3,4].map(function(){return '<tr><td colspan="12"></td></tr>'}).join('')+'</table>'+rpTbl([rpRow([['الاسم :',5],['التوقيع :',4],['التاريخ :',3]])]);
-  h+='<h3>سابعا : التوصية والاعتماد :</h3>'+rpTbl([
-    rpRow([['توصية الباحث',2,'n'],[rpCB(['قبول','انتظار','استبعاد'],''),10]]),
-    rpRow([['سبب التوصية (إجباري)',2,'n'],['',10]]).replace('<tr>','<tr style="height:34px">'),
-    rpRow([['حالة الملف',2,'n'],[rpCB(['نشط','انتظار','مستبعد','متوفى','انتقل','موقوف مؤقتاً'],''),10]]),
-    rpRow([['اعتماد اللجنة',2,'n'],['الاسم :',4],['التوقيع :',3],['التاريخ :',3]]),
-    rpRow([['موعد البحث القادم',2,'n'],['&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;/ 20',10]])]);
-  h+='<div class="ft"><ul><li>نسخة من أحدث كشف لراتب العاملين بالأسرة.</li><li>تعبئة البيانات بخط واضح.</li><li>نسخ من بطاقات الهوية لجميع أفراد الأسرة.</li><li>أي معلومات غير صحيحة تعرض صاحب الاستمارة إلى شطب من اللجنة.</li></ul><div class="qr">باركود لوكيشن المنزل</div></div>';
-  h+='<div class="meta">'+(blank?'نموذج فارغ':'بيانات ملف '+v('رقم_الملف')+' كما في المنصة يوم '+rpE(meta&&meta.at))+'</div></div>';
+  var tick=function(b){return b?'✓':''},has=function(k,w){return rpN(v(k)).indexOf(rpN(w))>=0};
+  var h='<div class="pg">'+rpHead(f);
+  h+='<h3>بيانات الملف والبحث :'+(f._flag?'<i>(تنبيه: '+rpE(f._flag)+')</i>':'')+'</h3>'+rpT([
+    rpR([rpL('رقم الملف',2,'n'),rpD(v('رقم_الملف'),2),rpL('نوع البحث',2,'n'),rpV(rpCB(['جديد','تحديث'],blank?'':'تحديث'),3),rpL('تاريخ البحث',1,'n'),rpV('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/ 20',2)]),
+    rpR([rpL('اسم الباحث',2,'n'),rpV('',5),rpL('تليفون الباحث',2,'n'),rpV('',3)]),
+    rpR([rpL('مصدر الترشيح',2,'n'),rpV(rpCB(['بحث ميداني','شخص ثقة','تقدّم بنفسه','أخرى'],v('مصدر_الترشيح')),10)]),
+    rpR([rpL('اسم المرشِّح وصلته',2,'n'),rpD(v('اسم_المرشح'),10)]),
+    rpR([rpL('المنطقة',2,'n'),rpV(rpCB(['بحري (1)','قبلي (2)','شرق (3)','وسط (4)'],regL),10)]),
+    rpR([rpL('منطقة التوزيع',2,'n'),rpV(rpCB(['بحري','قبلي','شرق ب','شرق ق','وسط'],zone),10)])]);
+  h+='<h3>أولا : بيانات الأسرة :</h3>'+rpT([
+    rpR([rpL('اسم المستفيد رباعي',3),rpD(v('اسم_رب_الأسرة'),9)]),
+    rpR([rpL('رقم البطاقة',3),rpD(v('الرقم_القومي'),9)]),
+    rpR([rpL('رقم الهاتف',3),rpD(v('الهاتف'),4),rpL('عمل رب الاسرة',2,'g'),rpD(v('عمل_رب_الأسرة'),3)]),
+    rpR([rpL('هاتف بديل',3,'n'),rpD(v('هاتف_بديل'),4),rpL('صاحبه وصلته',2,'n'),rpD(v('صاحب_الهاتف_البديل'),3)]),
+    rpR([rpL('الجنس',2),rpD(v('الجنس'),1),rpL('الحالة الاجتماعية',2,'g'),rpD(v('الحالة_الاجتماعية'),2),rpL('الحالة الصحية|لرب الاسرة',2,'g'),rpD(v('الحالة_الصحية'),1),rpL('نوع|المرض',1,'g'),rpD(v('نوع_المرض'),1)],'h2'),
+    rpR([rpL('وصف الحالة الصحية',3),rpD(v('وصف_الحالة_الصحية'),9)]),
+    rpR([rpL('عدد الافراد',1),rpD(v('عدد_الأفراد'),1),rpL('عدد|الاطفال',1,'g'),rpD(v('عدد_الأطفال'),1),rpL('عدد طلاب|المدارس',2,'g'),rpD(v('طلاب_المدارس'),1),rpL('عدد طلاب|الجامعة',2,'g'),rpD(v('طلاب_الجامعة'),1),rpL('عدد|المرضي',1,'g'),rpD(v('عدد_المرضى'),1)],'h2'),
+    rpR([rpL('قريب مسجّل|بالجمعية؟',3,'n'),rpV(rpCB(['لا','نعم'],v('رقم_ملف_قريب_مسجل')?'نعم':''),2),rpL('رقم ملفه',2,'n'),rpD(v('رقم_ملف_قريب_مسجل'),2),rpL('صلته',1,'n'),rpV('',2)],'h2')]);
+  var hs=rpN(v('نوع_السكن')),own=hs.indexOf('تمليك')>=0||hs.indexOf('ملك')>=0,rent=hs.indexOf('ايجار')>=0,fam=hs.indexOf('عائل')>=0,hOther=(!own&&!rent&&!fam)?v('نوع_السكن'):'';
+  var AM=[['ثلاّجة','ثلاج'],['غسّالة','غسال'],['سخان','سخان'],['فرن','فرن'],['بوتاجاز','بوتاجاز'],['فريزر','فريزر'],['سجاد','سجاد'],['اخري','اخري'],['تلفزيون','تلفزيون'],['مروحة','مروح']],amHit=0;
+  var am=function(i){var on=has('كماليات_السكن',AM[i][1]);if(on)amHit++;return rpD(tick(on),1)};
+  var amCells1=[rpL('كماليات السكن',2),rpL(AM[0][0],1,'g'),am(0),rpL(AM[1][0],1,'g'),am(1),rpL(AM[2][0],1,'g'),am(2),rpL(AM[3][0],1,'g'),am(3),rpL(AM[4][0],1,'n'),am(4)];
+  var amCells2=[null,rpL(AM[5][0],1,'g'),am(5),rpL(AM[6][0],1,'g'),am(6),rpL(AM[7][0],1,'g'),am(7),rpL(AM[8][0],1,'n'),am(8),rpL(AM[9][0],1,'n'),am(9)];
+  amCells2[0]=rpD(amHit?'':v('كماليات_السكن'),2);
+  h+='<h3>ثانيا : بيانات السكن :</h3>'+rpT([
+    rpR([rpL('العنوان',2),rpL('مبنى',1,'g'),rpV('',1),rpL('طريق',1,'g'),rpV('',2),rpL('مجمّع',1,'g'),rpV('',1),rpL('منطقة',1,'g'),rpD(v('منطقة_التوزيع')||v('المنطقة'),2)]),
+    rpR([rpL('الشارع / الحارة',2,'n'),rpD(v('الشارع_الحارة'),4),rpL('علامة مميزة|(بجوار)',2,'n'),rpD(v('علامة_مميزة'),4)],'h2'),
+    rpR([rpL('وصف الوصول',2,'n'),rpD(v('العنوان_الوصفي'),10)]),
+    rpR([rpL('نوع السكن',2),rpL('ملك',1,'g'),rpD(tick(own),1),rpL('ايجار',1,'g'),rpD(tick(rent),1),rpL('مع العائلة',2,'n'),rpD(tick(fam),1),rpL('نوع البناء',2,'g'),rpD(hOther,1)]),
+    rpR([rpL('قيمة الإيجار|الشهري',2,'n'),rpD(v('قيمة_الإيجار'),2),rpL('عدد الغرف',2,'n'),rpD(v('عدد_الغرف'),2),rpL('حالة المبنى',2,'n'),rpV(rpCB(['جيد','متوسط','آيل'],v('حالة_المبنى')),2)],'h2'),
+    rpR([rpL('السقف',2,'n'),rpV(rpCB(['خرسانة','خشب','جريد / بوص'],v('السقف')),4),rpL('الحوائط',2,'n'),rpV(rpCB(['طوب أحمر','طوب ني'],v('الحوائط')),4)]),
+    rpR([rpL('المرافق',2,'n'),rpV(rpCB(['مياه','كهرباء','صرف صحي','غاز'],v('المرافق')),10)]),
+    rpR(amCells1),rpR(amCells2)]);
+  var M=(f.members||[]).slice(),n=Math.max(10,M.length),mc=[450,2200,950,1650,600,1000,1000,800,950,960];
+  h+='<h3>ثالثا : بيانات أفراد الأسرة :</h3><table class="m'+(n>10?' mm':'')+'"><colgroup>'+mc.map(function(w){return '<col style="width:'+(w/56.69).toFixed(2)+'mm">'}).join('')+'</colgroup>'+
+    '<tr class="hh"><th class="y">م</th><th class="y">الاسم</th><th class="n">صلة القرابة</th><th class="y">الرقم الشخصي</th><th class="n">السن</th><th class="n">الدراسة /<br>المرحلة</th><th class="y">المهنة</th><th class="y">الراتب</th><th class="n">الحالة<br>الصحية</th><th class="y">ملاحظات</th></tr>';
+  for(var i=0;i<n;i++){var m=M[i]||{};h+='<tr class="h2"><td class="c">'+(i+1)+'</td><td class="d">'+rpE(m.name)+'</td><td class="d">'+rpE(m.rel)+'</td><td class="d c">'+rpE(m.nid)+'</td><td class="d c">'+rpE(m.age)+'</td><td class="d">'+rpE(m.edu)+'</td><td class="d">'+rpE(m.job)+'</td><td class="d c">'+rpE(m.sal)+'</td><td class="d">'+rpE(m.health)+'</td><td class="d">'+rpE(m.note)+'</td></tr>'}
+  h+='</table>'+(meta&&meta.at?'<div class="meta">'+(blank?'نموذج فارغ':'ملف '+rpE(v('رقم_الملف'))+' — بيانات المنصة يوم '+rpE(meta.at))+'</div>':'')+'</div>';
+  /* الصفحة التانية */
+  var num=function(k){var x=String(v(k)).replace(/^0$/,'');return x};
+  var inc=[['الراتب/تقاعد','g',num('راتب_معاش')],['مساعدات الشئون','g',num('مساعدات_الشئون')],['حياة كريمه','g',num('حياة_كريمة')],['أيتام/أرامل','g',num('أيتام_أرامل')],['نفقة','g',num('نفقة')],['تأمينات','n',num('تأمينات')],['تكافل وكرامة','n',num('تكافل_وكرامة')],['عمل يومية / موسمي','n',''],['دعم أقارب','n',''],[num('دخل_آخر')?'أخرى':'','',num('دخل_آخر')]];
+  var obl=[['إيجار','g'],['قسط بناء','g'],['قسط علاج','g'],['قسط دراسة','g'],['جمعية','g'],['علاج شهري مستمر','n'],['ديون','n'],['',''],['',''],['','']],ic=[460,1700,650,1000,460,1300,1000,1000,1100,1890];
+  h+='<div class="pg">'+rpHead(f)+'<h3>رابعا : بيانات الإيرادات والالتزامات المالية ومعلومات أخرى :</h3><table class="i"><colgroup>'+ic.map(function(w){return '<col style="width:'+(w/56.69).toFixed(2)+'mm">'}).join('')+'</colgroup>'+
+    '<tr class="hh"><th class="y">م</th><th class="y">دخل الأسرة</th><th class="n">يوجد<br>(✓)</th><th class="y">المبلغ</th><th class="y">م</th><th class="y">بيان الالتزام</th><th class="y">المبلغ الكلي</th><th class="y">القسط<br>الشهري</th><th class="y">ينتهي في</th><th class="y">ملاحظات</th></tr>';
+  for(i=0;i<10;i++){var a=inc[i][2];h+='<tr class="hi"><td class="c">'+(i+1)+'</td><td'+(inc[i][1]?' class="'+inc[i][1]+'"':'')+'>'+inc[i][0]+'</td><td class="d c">'+tick(!!a)+'</td><td class="d c">'+rpE(a)+'</td><td class="c">'+(i+1)+'</td><td'+(obl[i][1]?' class="'+obl[i][1]+'"':'')+'>'+obl[i][0]+'</td><td></td><td></td><td></td><td></td></tr>'}
+  h+='</table><div class="gap"></div>'+rpT([
+    rpR([rpL('مجموع الإيرادات',3,'g'),rpD(num('مجموع_الإيرادات'),1),rpL('مجموع الالتزامات',3,'g'),rpD(num('مجموع_الالتزامات'),1),rpL('صافي الدخل',2,'g'),rpD(num('صافي_الدخل'),2)]),
+    rpR([rpL('أصول / ممتلكات',3,'n'),v('أصول')?rpD(v('أصول'),9):rpV(rpCB(['أرض زراعية (مساحة: ......)','مواشي (عدد: ......)','محل / مشروع','أخرى'],''),9)],'h2')]);
+  var cur=[v('التصنيف')?'التصنيف الحالي: '+v('التصنيف'):'لا يوجد تصنيف',v('حالة_الملف')?'حالة الملف: '+v('حالة_الملف'):'',f._res&&f._res.date?'آخر بحث: '+f._res.date+(f._res.by?' — '+f._res.by:''):''].filter(String).join('   —   ');
+  h+='<h3>خامسا : التصنيف :</h3>'+rpT([
+    rpR([rpL('التصنيف المقترح',3,'n'),rpD(blank?'':cur,9)]),
+    rpR([rpL('تقدير الباحث',3,'n'),rpV(rpCB(['أ','ب','ج','د'],''),9)]),
+    rpR([rpL('ملاحظات المعاينة|(ما لا يظهر في البيانات)',3,'n'),rpD(v('ملاحظات')?'ملاحظة سابقة: '+v('ملاحظات'):'',9)],'h5'),
+    rpR([rpL('سبب الاختلاف عن|التصنيف المقترح',3,'n'),rpV('',9)],'h4')]);
+  var dots='.......................................................................................................................................................';
+  h+='<h3>سادسا : نتائج البحث :</h3>'+rpT([rpR([rpC('نتائج البحث وملاحظات اللجنة:',12,'')])].concat([1,2,3,4].map(function(){return rpR([rpC(dots,12,'')])})),'dots')+
+    rpT([rpR([rpV('الاسم :',5),rpV('التوقيع :',4),rpV('التاريخ :',3)])]);
+  h+='<h3>سابعا : التوصية والاعتماد :</h3>'+rpT([
+    rpR([rpL('توصية الباحث',2,'n'),rpV(rpCB(['قبول','انتظار','استبعاد'],''),10)]),
+    rpR([rpL('سبب التوصية|(إجباري)',2,'n'),rpV('',10)],'h3'),
+    rpR([rpL('حالة الملف',2,'n'),rpV(rpCB(['نشط','انتظار','مستبعد','متوفى','انتقل','موقوف مؤقتاً'],''),10)]),
+    rpR([rpL('اعتماد اللجنة',2,'n'),rpV('الاسم :',4),rpV('التوقيع :',3),rpV('التاريخ :',3)]),
+    rpR([rpL('موعد البحث القادم',2,'n'),rpV('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/ 20',10)])]);
+  h+='<div class="ft"><ul><li>نسخة من أحدث كشف لراتب العاملين بالأسرة.</li><li>تعبئة البيانات بخط واضح.</li><li>نسخ من بطاقات الهوية لجميع أفراد الأسرة.</li><li>اي معلومات غير صحيحة تعرض صاحب الاستمارة الي شطب من اللجنة.</li></ul><div class="sp"></div><div class="qr">باركود لوكيشن المنزل</div></div></div>';
   return h}
 function rpOpen(title,body){var w=RPW||window.open('','_blank');RPW=null;if(!w){alert('المتصفح منع فتح صفحة الطباعة — اسمح بالنوافذ المنبثقة للمنصة');return}
-  w.document.open();w.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+rpE(title)+'</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet"><style>'+RP_CSS+'</style></head><body>'+body+'<script>window.onload=function(){setTimeout(function(){window.print()},600)}<\/script></body></html>');w.document.close()}
+  w.document.open();w.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+rpE(title)+'</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet"><style>'+RP_CSS+'</style><script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"><\/script></head><body>'+body+
+   '<script>window.onload=function(){try{[].forEach.call(document.querySelectorAll("img[data-qr]"),function(im){var q=qrcode(0,"M");q.addData(im.getAttribute("data-qr"));q.make();im.src=q.createDataURL(4,0)})}catch(e){}(document.fonts?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print()},500)})}<\/script></body></html>');w.document.close()}
 var RPW=null;
 function rpWin(){RPW=window.open('','_blank');if(RPW)RPW.document.write('<p style="font-family:sans-serif;direction:rtl;padding:30px">جاري تجهيز الاستمارات…</p>')}
 function rpBlank(){RPW=null;rpOpen('استمارة بحث فارغة',rpForm({},null))}
