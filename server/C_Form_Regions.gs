@@ -98,6 +98,12 @@ function famExtra_(f) {
   }
   // العلاج الشهري: من عمود علاج_شهري لو موجود
   if (f['علاج_شهري'] !== undefined && f['علاج_شهري'] !== '') out.med = /^(نعم|✔|yes|true)$/i.test(String(f['علاج_شهري']).trim());
+  // صف الأسرة كامل → فلاتر «أي خانة» في طباعة كشف (للإدارة بس، زي باقي printData)
+  out.x = {};
+  Object.keys(f).forEach(function (k) {
+    var v = f[k];
+    out.x[k] = v instanceof Date ? Utilities.formatDate(v, 'Africa/Cairo', 'yyyy-MM-dd') : (v == null ? '' : v);
+  });
   return out;
 }
 
@@ -116,7 +122,7 @@ function setupRegionsLists() {
   return msgs.join(' | ') || 'كل حاجة موجودة';
 }
 
-/** اختياري: يضيف أعمدة جديدة في آخر تاب الأسر (عدد_الأيتام، علاج_شهري، مرفقات_أخرى). شغّلها بس لو كود السيرفر بيقرا الأعمدة بالاسم مش بالرقم. */
+/** موافَق عليها من أحمد (22 نوفمبر): يضيف أعمدة جديدة في آخر تاب الأسر (عدد_الأيتام، علاج_شهري، مرفقات_أخرى). شغّلها بس لو كود السيرفر بيقرا الأعمدة بالاسم مش بالرقم. */
 function addFamilyColumns() {
   var sh = nxSheet_('الأسر'), hdr = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String), added = [];
   ['عدد_الأيتام', 'علاج_شهري', 'مرفقات_أخرى'].forEach(function (h) {

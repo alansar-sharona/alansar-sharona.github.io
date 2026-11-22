@@ -217,6 +217,7 @@ input:focus{outline:none;border-color:var(--g)}
       <div class="f"><label class="l">المرافق الناقصة (أي واحد من اللي تختاره)</label><div class="chips" id="pXu"></div></div>
       <div class="f"><label class="l">الأجهزة الناقصة (أي واحد من اللي تختاره)</label><div class="chips" id="pXa"></div></div>
       <div class="msg hide" id="pXn" style="text-align:right;margin:-4px 0 10px"></div>
+      <div class="f"><label class="l">فلاتر على أي خانة في ملف الأسرة (الحالة الاجتماعية، العمل، السكن، المرض، الدخل…)</label><div id="pGF"></div><div class="ra"><button type="button" onclick="gfAdd()">➕ ضيف فلتر</button></div><div class="msg" id="pGFn" style="text-align:right"></div></div>
       <div class="f2"><div class="f"><label class="l">عدد الأفراد من</label><input id="pMin" class="tx" inputmode="numeric" placeholder="أي عدد"></div><div class="f"><label class="l">إلى</label><input id="pMax" class="tx" inputmode="numeric" placeholder="أي عدد"></div></div>
       <div class="f2"><div class="f"><label class="l">الترتيب</label>
         <select id="pSort"><option value="rg">المنطقة ثم رقم الملف</option><option value="fn">رقم الملف</option><option value="name">الاسم (أبجدي)</option><option value="m">عدد الأفراد (الأكبر الأول)</option><option value="gr">التصنيف (أ ثم ب…)</option><option value="orph">الأيتام (الأكتر الأول)</option><option value="utm">المرافق الناقصة (الأكتر الأول)</option><option value="apm">الأجهزة الناقصة (الأكتر الأول)</option><option value="med">العلاج الشهري الأول</option></select></div>
@@ -836,6 +837,7 @@ function pRows(){
     if(xo.indexOf('orph')>=0&&!(f.orph>0))return false;if(xo.indexOf('med')>=0&&f.med!==true)return false;
     if(xu.length&&!xu.some(function(u){return (f.utm||[]).indexOf(u)>=0}))return false;
     if(xa.length&&!xa.some(function(u){return (f.apm||[]).indexOf(u)>=0}))return false;
+    if(GF.length&&!gfOk(f))return false;
     var d=dv[f.fn];
     if(src==='L'&&!(d&&d.l))return false;if(src==='D'&&!(d&&d.n))return false;if(src==='N'&&d&&d.n)return false;
     return true});
@@ -861,7 +863,7 @@ function pUpd(){if(!PD)return;var R=pRows();
   store('ansar_print',JSON.stringify({v:v,c:{pRg:chk('pRg'),pGr:chk('pGr'),pSt:chk('pSt'),pCols:chk('pCols'),pXo:chk('pXo'),pXu:chk('pXu'),pXa:chk('pXa')},per:$('pPer').checked?1:0,sum:$('pSumT').checked?1:0}))}
 function pPrint(){
   var R=pRows();if(!R){return}if(!R.length){$('pSum').innerHTML='<span class="err">مفيش أسر بالمحددات دي</span>';return}
-  var cs=chk('pCols'),C=COLS.filter(function(c){return cs.indexOf(c[0])>=0});if(!C.length){$('pSum').innerHTML='<span class="err">اختار عمود واحد على الأقل</span>';return}
+  var cs=chk('pCols'),C=COLS.filter(function(c){return cs.indexOf(c[0])>=0});var gx=GF.filter(function(g){return g.show}).map(function(g){return ['x:'+g.k,g.k.replace(/_/g,' ')]}),si=C.map(function(c){return c[0]}).indexOf('sig');if(gx.length)C=si<0?C.concat(gx):C.slice(0,si).concat(gx,C.slice(si));if(!C.length){$('pSum').innerHTML='<span class="err">اختار عمود واحد على الأقل</span>';return}
   var title=$('pTitle').value.trim()||'كشف',type=$('pType').value.trim(),unit=$('pUnit').value.trim(),hasV=cs.indexOf('v')>=0&&$('pVM').value!=='none';
   var src=$('pSrc').value,actN=needAct()?$('pAct').options[$('pAct').selectedIndex].text:'';
   var today=new Date(),ds=('0'+today.getDate()).slice(-2)+'/'+('0'+(today.getMonth()+1)).slice(-2)+'/'+today.getFullYear();
@@ -873,7 +875,7 @@ function pPrint(){
     case 'nid':return '<td class="ltr">'+esc(f.nid)+'</td>';case 'nid4':return '<td class="ltr">'+(f.nid?'…'+esc(f.nid.slice(-4)):'')+'</td>';
     case 'ph':return '<td class="ltr">'+esc(f.ph)+'</td>';case 'rg':return '<td class="c">'+esc(f.rg)+'</td>';case 'ad':return '<td class="ad">'+esc(f.ad)+'</td>';
     case 'm':return '<td class="c">'+(f.m||'')+'</td>';case 'gr':return '<td class="c">'+esc(f.gr)+'</td>';case 'orph':return '<td class="c">'+(f.orph||'')+'</td>';case 'utm':return '<td class="ad">'+esc((f.utm||[]).join('، '))+'</td>';case 'apm':return '<td class="ad">'+esc((f.apm||[]).join('، '))+'</td>';case 'med':return '<td class="c">'+(f.med===true?'✔':'')+'</td>';case 'v':return '<td class="c"><b>'+fv(r.v)+'</b></td>';
-    case 'dt':return '<td class="c">'+esc(r.dt)+'</td>';case 'by':return '<td>'+esc(r.by)+'</td>';case 'sig':return '<td class="sig"></td>'}}
+    case 'dt':return '<td class="c">'+esc(r.dt)+'</td>';case 'by':return '<td>'+esc(r.by)+'</td>';case 'sig':return '<td class="sig"></td>'}if(c.indexOf('x:')===0)return '<td>'+esc((f.x||{})[c.slice(2)]==null?'':(f.x||{})[c.slice(2)])+'</td>'}
   var vH=hasV?'القيمة'+(unit?' ('+esc(unit)+')':''):'';
   var head='<tr>'+C.map(function(c){return '<th>'+(c[0]==='v'?vH:c[1])+'</th>'}).join('')+'</tr>';
   var sg=$('pSigs').value.split(/[،,]/).map(function(x){return x.trim()}).filter(String);
@@ -990,6 +992,7 @@ var HELP=[
   'اختار نموذج الكشف (تسليم بتوقيع / توزيع للمندوب / المستلمين فعلاً) واكتب العنوان.',
   'من «مين يطلع في الكشف» اختار المصدر والمنطقة والتصنيف وحالة الملف وعدد الأفراد.',
   'لو عايز حالات معينة: «فيها أيتام» أو «عليها علاج شهري» أو المرافق الناقصة (مياه / كهرباء / صرف / غاز) أو الأجهزة الناقصة — واختار الترتيب (مثلاً الأيتام الأكتر الأول).',
+  'عايز تفلتر بأي حاجة تانية (الحالة الاجتماعية، العمل، نوع السكن، الدخل…)؟ دوس «➕ ضيف فلتر» واختار الخانة والقيم، وعلّم «اعرضه كعمود» لو عايزه يطلع في الكشف.',
   'لو محتاج قيمة لكل أسرة اختارها من «القيمة لكل أسرة».',
   'اختار الأعمدة واتجاه الورقة، وبعدين «🖨️ طباعة / حفظ PDF».'],
   tip:'على الموبايل: من شاشة الطباعة اختار «حفظ كـ PDF». الرقم اللي تحت بيقولك هيطلع كام أسرة قبل ما تطبع.'},
@@ -1122,6 +1125,24 @@ HELP.push(
   'لو عايز تخفي حد من غير ما تمسحه خلي «يظهر» = لا.'],
   tip:'الصفحة العامة بتعرض الاسم والصفة بس — ما تكتبش رقم قومي ولا تليفون في التاب ده. التحديث بيظهر خلال 5 دقايق.'}
 );
+/* ===== فلاتر على أي خانة في ملف الأسرة (بتحتاج printData يبعت f.x = صف الأسرة كامل) ===== */
+var GF=[],GF_SKIP=['رقم_الملف','ID','اسم_رب_الأسرة','الرقم_القومي','الهاتف','هاتف_بديل','اللوكيشن','مراجعة'];
+function gfKeys(){var K={};(PD&&PD.fams||[]).forEach(function(f){Object.keys(f.x||{}).forEach(function(k){if(GF_SKIP.indexOf(k)<0)K[k]=1})});return Object.keys(K)}
+function gfInfo(k){var vals={},n=0,num=0;PD.fams.forEach(function(f){var v=f.x&&f.x[k];v=v==null?'':String(v).trim();if(v!==''){n++;if(!isNaN(nm(v)))num++}vals[v||'(فاضي)']=(vals[v||'(فاضي)']||0)+1});
+  var d=Object.keys(vals).length;return {vals:vals,type:n&&num/n>0.9&&d>12?'num':d<=40?'list':'text'}}
+function gfAdd(){if(!PD)return;var K=gfKeys();if(!K.length){$('pGFn').textContent='⚠️ الفلاتر دي محتاجة تحديث السيرفر (printData يبعت صف الأسرة كامل).';return}GF.push({k:K[0]});gfDraw();pUpd()}
+function gfDraw(){var K=gfKeys();
+  $('pGF').innerHTML=GF.map(function(g,i){var I=gfInfo(g.k),ctl='';g.t=I.type;
+    if(I.type==='list')ctl='<div class="chips" style="margin-top:6px">'+Object.keys(I.vals).sort(function(a,b){return I.vals[b]-I.vals[a]}).map(function(v){return '<label class="chip"><input type="checkbox" value="'+esc(v)+'"'+((g.vals||[]).indexOf(v)>=0?' checked':'')+' onchange="gfSet('+i+')"><span>'+esc(v)+'<small>'+I.vals[v]+'</small></span></label>'}).join('')+'</div>';
+    else if(I.type==='num')ctl='<div class="f2" style="margin-top:6px"><input class="tx" inputmode="decimal" placeholder="من" value="'+esc(g.min||'')+'" oninput="GF['+i+'].min=this.value;pUpd()"><input class="tx" inputmode="decimal" placeholder="إلى" value="'+esc(g.max||'')+'" oninput="GF['+i+'].max=this.value;pUpd()"></div>';
+    else ctl='<input class="tx" style="margin-top:6px" placeholder="فيها الكلمة دي" value="'+esc(g.q||'')+'" oninput="GF['+i+'].q=this.value;pUpd()">';
+    return '<div style="border:1px dashed var(--line);border-radius:12px;padding:8px;margin-bottom:8px"><div style="display:flex;gap:6px;align-items:center"><select onchange="GF['+i+']={k:this.value};gfDraw();pUpd()" style="flex:1">'+K.map(function(k){return '<option value="'+esc(k)+'"'+(k===g.k?' selected':'')+'>'+esc(k.replace(/_/g,' '))+'</option>'}).join('')+'</select><button type="button" onclick="GF.splice('+i+',1);gfDraw();pUpd()" style="border:0;background:none;color:var(--red);font-size:20px">✖</button></div>'+ctl+
+     '<label class="ck"><input type="checkbox"'+(g.show?' checked':'')+' onchange="GF['+i+'].show=this.checked"> اعرضه كعمود في الكشف</label></div>'}).join('')}
+function gfSet(i){GF[i].vals=[].map.call(document.querySelectorAll('#pGF > div:nth-child('+(i+1)+') .chips input:checked'),function(x){return x.value});pUpd()}
+function gfOk(f){return GF.every(function(g){var v=f.x&&f.x[g.k];v=v==null?'':String(v).trim();
+  if(g.t==='list')return !(g.vals&&g.vals.length)||g.vals.indexOf(v||'(فاضي)')>=0;
+  if(g.t==='num'){var x=nm(v),a=nm(g.min),b=nm(g.max);if(!isNaN(a)&&!(x>=a))return false;if(!isNaN(b)&&!(x<=b))return false;return true}
+  return !g.q||v.indexOf(g.q.trim())>=0})}
 </script>
 </body>
 </html>
