@@ -239,6 +239,24 @@ input:focus{outline:none;border-color:var(--g)}
     <div class="card sumbar"><div id="pSum">جاري التحميل…</div><button class="btn" onclick="pPrint()">🖨️ طباعة / حفظ PDF</button>
       <div class="msg">على الموبايل: من شاشة الطباعة اختار «حفظ كـ PDF»</div></div>
   </section>
+  <section id="s-fb" class="hide">
+    <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
+    <div class="card"><h2>💬 شكاوي ومقترحات</h2>
+      <div class="msg" style="text-align:right;margin:0 0 8px">الرسايل اللي جاية من الصفحة العامة. الاسم والتليفون اختياريين للي بيبعت — والرسايل دي ما بتظهرش للناس.</div>
+      <div class="rf chips" id="fbF" style="margin:0"></div>
+    </div>
+    <div id="fbList"><div class="spin">جاري التحميل…</div></div>
+  </section>
+  <section id="s-fbl" class="hide">
+    <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
+    <div class="card"><h2>📘 بوستات فيسبوك في الصفحة العامة</h2>
+      <div class="msg" style="text-align:right;margin:0 0 8px">الصق لينك بوست أو عمل جديد من صفحة الجمعية، واكتب عنوان قصير — هيظهر في «لقطات من أعمالنا» في الصفحة العامة خلال دقايق.</div>
+      <div class="f"><label class="l">لينك البوست</label><input id="fblU" class="tx" style="direction:ltr;text-align:left" placeholder="https://www.facebook.com/…"></div>
+      <div class="f"><label class="l">العنوان</label><input id="fblT" class="tx" maxlength="80" placeholder="مثلاً: حصاد توزيع لحوم نوفمبر"></div>
+      <button class="btn" onclick="fblAdd()">➕ ضيف للصفحة العامة</button><div id="fblM" class="msg"></div>
+    </div>
+    <div id="fblList"></div>
+  </section>
   <section id="s-help" class="hide">
     <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
     <div class="card"><h2>🙋 ساعدني</h2>
@@ -316,6 +334,8 @@ function render(h){
     t+=tile(LINKS.sheet,'📊','قاعدة البيانات','الأسر والتسليمات والكفالات');
     t+=tile(LINKS.users,'👥','المستخدمين','الحسابات والأرقام السرية');
     t+=tile('javascript:openPrint()','🖨️','طباعة كشف','كشف توزيع أو تسليم بالمحددات اللي تختارها — PDF');
+    t+=tile('javascript:openFb()','💬','شكاوي ومقترحات','الرسايل اللي جاية من الصفحة العامة');
+    t+=tile('javascript:openFbl()','📘','بوستات فيسبوك','ضيف لينك بوست يظهر في الصفحة العامة');
   }
   t+=tile('javascript:openOrg()','🏛️','الجمعية','بيانات الإشهار واللائحة ومجلس الإدارة');
   t+=tile('#','🤝','الكفالات','كفالات الأسر والمتبرعين','soon','قريباً');
@@ -1041,6 +1061,49 @@ function nGo(id){var x=(NT.list||[]).filter(function(y){return String(y.id)===St
 function nRead(id,quiet){var ids=id==='all'?(NT&&NT.list||[]).filter(function(x){return !x.read}).map(function(x){return x.id}):[id];if(!ids.length)return;
   (NT.list||[]).forEach(function(x){if(ids.indexOf(x.id)>=0||ids.indexOf(String(x.id))>=0)x.read=true});NT.unread=Math.max(0,(NT.unread||0)-ids.length);if(id==='all')NT.unread=0;nBadge();if(!quiet)nDraw();
   call('notifRead',[PIN,ids],function(){},function(){})}
+/* ===== شكاوي ومقترحات (من الصفحة العامة) ===== */
+var FBK=null,FBKF='جديدة';
+function openFb(id){show('s-fb');window.scrollTo(0,0);$('fbList').innerHTML='<div class="spin">جاري التحميل…</div>';
+  call('feedbackList',[PIN],function(d){FBK=d.list;if(id)FBKF='all';fbkDraw(id)},function(m){$('fbList').innerHTML='<div class="card err">'+esc(m)+'</div>'})}
+function fbkDraw(hl){var C={'جديدة':0,'اتقرت':0,'اتحلّت':0,all:FBK.length};FBK.forEach(function(x){C[x.st]=(C[x.st]||0)+1});
+  $('fbF').innerHTML=[['جديدة','🆕 جديدة'],['اتقرت','👁 اتقرت'],['اتحلّت','✅ اتحلّت'],['all','الكل']].map(function(x){return '<label class="chip"><input type="radio" name="fbkf"'+(FBKF===x[0]?' checked':'')+' onchange="FBKF=\''+x[0]+'\';fbkDraw()"><span>'+x[1]+' <small>'+(C[x[0]]||0)+'</small></span></label>'}).join('');
+  var L=FBK.filter(function(x){return FBKF==='all'||x.st===FBKF});
+  $('fbList').innerHTML=L.map(function(x){var ph=(x.phone||'').replace(/[^\d+]/g,'');
+    return '<div class="rc" id="fbk'+esc(x.id)+'"'+(hl===x.id?' style="outline:3px solid var(--o)"':'')+'><div class="h"><b>'+esc(x.type)+'</b><small>'+esc(x.dt)+'</small></div>'+
+     '<div style="white-space:pre-wrap;font-size:15px;line-height:1.7;margin:6px 0">'+esc(x.msg)+'</div>'+
+     '<div class="m">'+(x.name?'من: '+esc(x.name):'من غير اسم')+(ph?' — <a href="tel:'+esc(ph)+'" style="color:var(--g)">📞 '+esc(ph)+'</a>':'')+' — الحالة: <b>'+esc(x.st)+'</b>'+(x.note?'<br>ملاحظة: '+esc(x.note):'')+'</div>'+
+     '<div class="ra">'+(x.st!=='اتقرت'?'<button onclick="fbkSet(\''+esc(x.id)+'\',\'اتقرت\')">👁 اتقرت</button>':'')+(x.st!=='اتحلّت'?'<button class="p" onclick="fbkSet(\''+esc(x.id)+'\',\'اتحلّت\')">✅ اتحلّت</button>':'')+'</div><div id="fbm'+esc(x.id)+'" class="msg"></div></div>'}).join('')||'<div class="card msg">مفيش رسايل هنا 👌</div>';
+  if(hl){var e=$('fbk'+hl);e&&e.scrollIntoView({block:'center'})}}
+function fbkSet(id,st){var note=st==='اتحلّت'?prompt('ملاحظة سريعة (اتعمل إيه؟) — اختياري',''):'';if(note==null)return;var m=$('fbm'+id);m.textContent='جاري الحفظ…';
+  call('feedbackSet',[PIN,id,st,note],function(){FBK.forEach(function(x){if(x.id===id){x.st=st;if(note)x.note=note}});fbkDraw()},function(e){m.innerHTML='<span class="err">'+esc(e)+'</span>'})}
+/* ===== بوستات فيسبوك للصفحة العامة ===== */
+function openFbl(){show('s-fbl');window.scrollTo(0,0);fblLoad()}
+function fblLoad(){$('fblList').innerHTML='<div class="spin">جاري التحميل…</div>';
+  call('fbList',[PIN],function(d){$('fblList').innerHTML=d.list.map(function(x){return '<div class="rc"><div class="h"><b>'+esc(x.title)+'</b><small>'+esc(x.dt)+'</small></div><div class="m" style="direction:ltr;text-align:left;word-break:break-all"><a href="'+esc(x.url)+'" target="_blank" rel="noopener" style="color:var(--g)">'+esc(x.url)+'</a></div><div class="m">'+(x.on?'<span class="badge ok">ظاهر في الصفحة العامة</span>':'<span class="badge no">مخفي</span>')+' — '+esc(x.by)+'</div>'+(x.on?'<div class="ra"><button onclick="fblHide(\''+esc(x.id)+'\')" style="color:var(--red)">إخفاء من الصفحة العامة</button></div>':'')+'</div>'}).join('')||'<div class="card msg">لسه مفيش لينكات اتضافت من هنا</div>'},
+   function(m){$('fblList').innerHTML='<div class="card err">'+esc(m)+'</div>'})}
+function fblAdd(){var u=$('fblU').value.trim(),t=$('fblT').value.trim();if(!u||!t){$('fblM').innerHTML='<span class="err">الصق اللينك واكتب العنوان</span>';return}
+  $('fblM').textContent='جاري الإضافة…';call('fbAdd',[PIN,u,t],function(){$('fblU').value='';$('fblT').value='';$('fblM').innerHTML='<span style="color:var(--g);font-weight:700">✅ اتضاف — هيظهر في الصفحة العامة خلال دقايق</span>';fblLoad()},function(e){$('fblM').innerHTML='<span class="err">'+esc(e)+'</span>'})}
+function fblHide(id){if(!confirm('إخفاء اللينك ده من الصفحة العامة؟'))return;call('fbHide',[PIN,id],fblLoad,function(e){alert(e)})}
+HELP.push(
+ {id:'feedback',t:'إزاي أشوف الشكاوي والمقترحات وأرد عليها',r:['admin'],s:[
+  'لما حد يبعت شكوى أو اقتراح من الصفحة العامة، بيوصلك إشعار 💬 في الجرس.',
+  'دوس «افتح الرسايل ←» على الإشعار، أو من الرئيسية «💬 شكاوي ومقترحات».',
+  'لو الراسل كتب تليفونه هتلاقي زرار اتصال. الاسم والتليفون اختياريين، فكتير من الرسايل هتبقى من غير اسم.',
+  'بعد ما تقرا دوس «👁 اتقرت»، ولما المشكلة تتحل دوس «✅ اتحلّت» واكتب اتعمل إيه.'],
+  tip:'الرسايل دي ما بتظهرش في الصفحة العامة خالص.'},
+ {id:'fb_post',t:'إزاي أضيف بوست فيسبوك للصفحة العامة',r:['admin'],s:[
+  'افتح البوست على صفحة الجمعية في فيسبوك، ودوس «مشاركة» ← «نسخ الرابط».',
+  'في المنصة من الرئيسية دوس «📘 بوستات فيسبوك».',
+  'الصق اللينك واكتب عنوان قصير، ودوس «➕ ضيف للصفحة العامة».',
+  'لو عايز تشيله: «إخفاء من الصفحة العامة» (مش بيتمسح، بيتخفي بس).'],
+  tip:'البوستات بتبدأ بـ«بشرى سارة» أو «بفضل الله»، ومن غير اسم الذبيحة.'},
+ {id:'sys_board',t:'إزاي أضيف أسماء مجلس الإدارة والأعضاء المنتسبين',r:['sys'],s:[
+  'افتح تاب «أعضاء_الصفحة_العامة» في الشيت.',
+  'اكتب الاسم في عمود «الاسم» جنب الصفة. النوع: «عامل» لمجلس الإدارة، «منتسب» للأعضاء المنتسبين.',
+  'تقدر تزود صفوف، والترتيب بيتحكم في مكان الاسم.',
+  'لو عايز تخفي حد من غير ما تمسحه خلي «يظهر» = لا.'],
+  tip:'الصفحة العامة بتعرض الاسم والصفة بس — ما تكتبش رقم قومي ولا تليفون في التاب ده. التحديث بيظهر خلال 5 دقايق.'}
+);
 </script>
 </body>
 </html>
