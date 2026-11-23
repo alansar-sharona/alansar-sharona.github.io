@@ -84,18 +84,9 @@ function nxFmt_(d) {
  * لو السيرفر عنده دالة تحقق جاهزة (زي اللي بتستخدمها home)، الأفضل تبدّل جسم الدالة دي بيها.
  */
 function nxUser_(pin) {
-  pin = String(pin == null ? '' : pin).trim();
-  if (!pin) throw new Error('الرقم السري مطلوب');
-  var t = nxRows_(nxSheet_(NX.T_USERS));
-  var cP = nxCol_(t.hdr, ['PIN', 'الرقم_السري']), cN = nxCol_(t.hdr, ['الاسم']), cR = nxCol_(t.hdr, ['الدور']), cA = nxCol_(t.hdr, ['فعّال', 'فعال']);
-  for (var i = 0; i < t.rows.length; i++) {
-    var r = t.rows[i];
-    if (String(r[cP]).trim() !== pin) continue;
-    if (cA >= 0 && /^(لا|no|false|0)$/i.test(String(r[cA]).trim())) break;
-    var role = String(r[cR] || '').trim();
-    return { name: String(r[cN] || '').trim(), role: role, admin: NX.ADMIN_ROLES.indexOf(role) >= 0 };
-  }
-  throw new Error('الرقم السري غلط');
+  // نفس تحقق الـ PIN بتاع الرمز.gs (بيقبل الأرقام العربي وبيرفض الحساب الموقوف)
+  var u = user_(pin, true);
+  return { name: u.name, role: u.role, admin: NX.ADMIN_ROLES.indexOf(u.role) >= 0 };
 }
 function nxAdmin_(pin) {
   var u = nxUser_(pin);

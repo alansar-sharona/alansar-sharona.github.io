@@ -503,12 +503,12 @@ function openRes(){show('s-res');window.scrollTo(0,0);$('rpBox').innerHTML='<b>�
   $('rList').innerHTML='<div class="spin">جاري تحميل الأبحاث من كوبو…</div>';
   call('researches',[PIN],function(d){RS=d.list;rDraw()},function(m){$('rList').innerHTML='<div class="card err">'+esc(m)+'</div>'})}
 function rLoc(r){if(r.loc)return 'https://www.google.com/maps?q='+r.loc.lat+','+r.loc.lng;return r.link||r.famLoc||''}
-function rSt(r){return r.vs==='validation_status_approved'?'ok':r.vs==='validation_status_not_approved'?'no':'wait'}
+function rSt(r){return r.vs==='validation_status_approved'?'ok':r.vs==='validation_status_not_approved'?'no':r.vs==='validation_status_on_hold'?'hold':'wait'}
 var RSF=null;function rSet(s){RSF=s;rDraw()}
 function rDraw(){if(!RS)return;var q=$('rQ').value.trim(),f=(document.querySelector('input[name=rf]:checked')||{}).value||'all';
-  var C={wait:0,ok:0,no:0,all:RS.length};RS.forEach(function(r){C[rSt(r)]++});
+  var C={wait:0,hold:0,ok:0,no:0,all:RS.length};RS.forEach(function(r){C[rSt(r)]++});
   if(!RSF)RSF=C.wait?'wait':'all';
-  $('rS').innerHTML=[['wait','⏳ مستني اعتماد'],['ok','✅ معتمد'],['no','✖ مرفوض'],['all','الكل']].map(function(x){return '<label class="chip"><input type="radio" name="rs"'+(RSF===x[0]?' checked':'')+' onchange="rSet(\''+x[0]+'\')"><span>'+x[1]+' <small>'+C[x[0]]+'</small></span></label>'}).join('');
+  $('rS').innerHTML=[['wait','⏳ مستني اعتماد'],['hold','↩ مرجّع للتعديل'],['ok','✅ معتمد'],['no','✖ مرفوض'],['all','الكل']].map(function(x){return '<label class="chip"><input type="radio" name="rs"'+(RSF===x[0]?' checked':'')+' onchange="rSet(\''+x[0]+'\')"><span>'+x[1]+' <small>'+C[x[0]]+'</small></span></label>'}).join('');
   var L=RS.filter(function(r){if(RSF!=='all'&&rSt(r)!==RSF)return false;var has=!!rLoc(r);if(f==='no'&&has)return false;
     return !q||(r.fn+' '+r.name+' '+r.by).indexOf(q)>=0});
   var miss=L.filter(function(r){return !rLoc(r)}).length;
@@ -516,15 +516,88 @@ function rDraw(){if(!RS)return;var q=$('rQ').value.trim(),f=(document.querySelec
   $('rList').innerHTML=L.slice(0,150).map(function(r){var u=rLoc(r);
     return '<div class="rc" id="rc'+r.id+'"><div class="h"><b>'+esc(r.name||'بدون اسم')+'</b><small>ملف '+esc(r.fn||'—')+'</small></div>'+
       '<div class="m">'+esc(r.type)+' — '+esc(r.dt)+' — الباحث: '+esc(r.by)+(r.src?' — من '+esc(r.src):'')+'<br>'+
-      (r.vs==='validation_status_approved'?'<span class="badge ok">✅ معتمد</span> ':r.vs==='validation_status_not_approved'?'<span class="badge no">✖ مرفوض</span> ':'<span class="badge" style="background:#FFF4E5;color:#8A4B0B">⏳ مستني اعتماد</span> ')+
-      (u?'<span class="badge ok">📍 فيه لوكيشن'+(r.loc?'':' (لينك)')+'</span>':'<span class="badge no">⚠️ ناقص لوكيشن</span>')+'</div>'+scReview(r)+
-      '<div class="ra">'+(u?'<a class="p" href="'+esc(u)+'" target="_blank" rel="noopener">🗺️ افتح على الخريطة</a>':'')+
+      (r.vs==='validation_status_approved'?'<span class="badge ok">✅ معتمد</span> ':r.vs==='validation_status_not_approved'?'<span class="badge no">✖ مرفوض</span> ':r.vs==='validation_status_on_hold'?'<span class="badge" style="background:#EAF0FB;color:#2B4C8C">↩ مرجّع للتعديل</span> ':'<span class="badge" style="background:#FFF4E5;color:#8A4B0B">⏳ مستني اعتماد</span> ')+
+      (u?'<span class="badge ok">📍 فيه لوكيشن'+(r.loc?'':' (لينك)')+'</span>':'<span class="badge no">⚠️ ناقص لوكيشن</span>')+'</div>'+(r.note&&r.vs==='validation_status_on_hold'?'<div class="msg" style="text-align:right;margin:0 0 8px;color:#2B4C8C">↩ ملاحظة الإدارة: '+esc(r.note)+'</div>':'')+scReview(r)+
+      '<div class="ra"><button class="p" onclick="rView('+r.id+')">👁 اعرض البحث كامل</button>'+(u?'<a href="'+esc(u)+'" target="_blank" rel="noopener">🗺️ الخريطة</a>':'')+
       '<button onclick="rEdit('+r.id+')">'+(u?'✏️ عدّل اللوكيشن':'➕ ضيف لوكيشن')+'</button></div>'+
-      (ADMIN&&r.vs!=='validation_status_approved'?'<div class="ra" style="margin-top:8px"><button class="p" onclick="rDecide('+r.id+',\'approve\')">✅ اعتماد البحث</button><button onclick="rDecide('+r.id+',\'reject\')">✖ رفض</button><button onclick="rDel('+r.id+')" style="color:var(--red)">🗑 حذف (مكرر/غلط)</button></div>':'')+
-      '<div id="le'+r.id+'"></div></div>'}).join('')||'<div class="card msg">مفيش أبحاث بالبحث ده</div>'}
+      (ADMIN&&r.vs!=='validation_status_approved'?'<div class="ra" style="margin-top:8px"><button class="p" onclick="rDecide('+r.id+',\'approve\')">✅ اعتماد البحث</button><button onclick="rvBack('+r.id+')">↩ إرجاع للباحث</button><button onclick="rDecide('+r.id+',\'reject\')">✖ رفض</button><button onclick="rDel('+r.id+')" style="color:var(--red)">🗑 حذف (مكرر/غلط)</button></div>':'')+
+      '<div id="rv'+r.id+'"></div><div id="le'+r.id+'"></div></div>'}).join('')||'<div class="card msg">مفيش أبحاث بالبحث ده</div>'}
 function rDel(id){var c=$('le'+id);if(!confirm('حذف البحث ده نهائي من كوبو؟ استخدمها للبحث المكرر أو اللي اتبعت غلط بس.'))return;
   c.innerHTML='<div class="msg">جاري الحذف…</div>';
   call('resDelete',[PIN,id],function(){RS=RS.filter(function(x){return x.id!==id});rDraw()},function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'})}
+/* ===== مراجعة البحث كامل: عرض، تعديل، إرجاع للباحث، وملخص التغييرات عن ملف الأسرة ===== */
+var RV={};
+function rvLab(list,code){var L=RSPEC.choices[list]||[];return String(code==null?'':code).split(' ').filter(String).map(function(c){var x=L.filter(function(y){return y[0]===c})[0];return x?x[1]:c}).join('، ')}
+function rvVal(f,v){if(v==null||v==='')return '';v=String(v);
+  if(f.k==='select_one'||f.k==='select_multiple')return esc(rvLab(f.list,v));
+  if(f.k==='image')return '📷 <span style="direction:ltr;display:inline-block">'+esc(v)+'</span>';
+  if(f.k==='geopoint'){var p=v.split(' ');return p.length>=2?'<a href="https://www.google.com/maps?q='+esc(p[0])+','+esc(p[1])+'" target="_blank" rel="noopener" style="color:var(--g)">📍 '+esc(p[0])+', '+esc(p[1])+'</a>':esc(v)}
+  if(/^https?:/.test(v))return '<a href="'+esc(v)+'" target="_blank" rel="noopener" style="color:var(--g)">فتح اللينك</a>';
+  return esc(v)}
+var RV_CALC={fn:'رقم الملف',inc_total:'مجموع الإيرادات',obl_total:'مجموع الالتزامات',net:'صافي الدخل'};
+function rvShowF(f){return f.k!=='note'&&f.k!=='barcode'&&(f.k!=='calculate'||f.n in RV_CALC)}
+function rvEditF(f){return f.k!=='note'&&f.k!=='calculate'&&f.k!=='image'&&f.k!=='barcode'}
+function rvRow(l,v){return '<tr><th style="text-align:right;font-weight:600;color:var(--mut);padding:5px 6px;vertical-align:top;width:42%">'+esc(l)+'</th><td style="padding:5px 6px">'+v+'</td></tr>'}
+function rvInput(f,key,v){v=v==null?'':String(v);var a=' data-k="'+esc(key)+'" class="tx" style="width:100%"';
+  if(f.k==='select_one')return '<select'+a+'><option value=""></option>'+(RSPEC.choices[f.list]||[]).map(function(c){return '<option value="'+esc(c[0])+'"'+(c[0]===v?' selected':'')+'>'+esc(c[1])+'</option>'}).join('')+'</select>';
+  if(f.k==='select_multiple'){var have=v.split(' ');return '<div class="chips" data-km="'+esc(key)+'">'+(RSPEC.choices[f.list]||[]).map(function(c){return '<label class="chip"><input type="checkbox" value="'+esc(c[0])+'"'+(have.indexOf(c[0])>=0?' checked':'')+'><span>'+esc(c[1])+'</span></label>'}).join('')+'</div>'}
+  if(f.k==='integer')return '<input'+a+' inputmode="numeric" value="'+esc(v)+'">';
+  if(f.k==='date')return '<input'+a+' type="date" value="'+esc(v.slice(0,10))+'">';
+  if(f.app==='multiline')return '<textarea'+a+' rows="3">'+esc(v)+'</textarea>';
+  return '<input'+a+' value="'+esc(v)+'"'+(f.k==='geopoint'?' placeholder="خط العرض خط الطول" dir="ltr"':'')+'>'}
+function rvErr(m,fn){return /غير معروف/.test(m)?'محتاج تحديث السيرفر ('+fn+')':m}
+function rView(id){var b=$('rv'+id);if(!b)return;if(b.innerHTML){b.innerHTML='';return}
+  b.innerHTML='<div class="le"><div class="spin">جاري تحميل البحث كامل من كوبو…</div></div>';
+  call('resGet',[PIN,id],function(d){RV[id]=d;d.edit=false;rvDraw(id)},function(m){b.innerHTML='<div class="le"><div class="err">'+esc(rvErr(m,'resGet'))+'</div></div>'})}
+function rvSummary(d){
+  if(d.isNew)return '<div class="msg" style="text-align:right;background:#FFF4E5;color:#8A4B0B;border-radius:12px;padding:8px 10px;margin:0 0 8px">🆕 <b>حالة جديدة</b> — مش مسجلة في الجمعية، والاعتماد هيعمل لها ملف جديد.</div>';
+  var h='<div style="background:#F3FAF6;border:1px solid #CFE7D9;border-radius:12px;padding:8px 10px;margin:0 0 8px"><b>🔄 تحديث على ملف '+esc(d.fam.fn)+'</b> — '+esc(d.fam.name)+(d.fam.status?' ('+esc(d.fam.status)+')':'')+'<br>';
+  var mc=d.members&&(d.members.add.length||d.members.del.length);
+  if(!d.changes.length&&!mc)return h+'<span class="msg" style="margin:0">✔ مفيش أي تغيير عن البيانات المسجلة.</span></div>';
+  if(d.changes.length)h+='<span class="msg" style="margin:0;text-align:right;display:block">ملخص اللي هيتغيّر في ملف الأسرة لو اعتمدت ('+d.changes.length+' خانة) — القديم ← الجديد:</span><table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:4px">'+
+    d.changes.map(function(c){return '<tr style="border-top:1px solid #E3EFE8"><th style="text-align:right;padding:4px;font-weight:600;width:30%">'+esc(c.k.replace(/_/g,' '))+'</th><td style="padding:4px;color:var(--red);text-decoration:line-through">'+(esc(c.old)||'<i>فاضي</i>')+'</td><td style="padding:4px;color:var(--g);font-weight:700">'+esc(c.nv)+'</td></tr>'}).join('')+'</table>';
+  if(mc)h+='<div class="msg" style="text-align:right;margin:6px 0 0">👨‍👩‍👧 الأفراد: كانوا '+d.members.old.length+' وبقوا '+d.members.nv.length+(d.members.add.length?' — <b style="color:var(--g)">جداد:</b> '+esc(d.members.add.join('، ')):'')+(d.members.del.length?' — <b style="color:var(--red)">مش موجودين في البحث:</b> '+esc(d.members.del.join('، ')):'')+'</div>';
+  return h+'</div>'}
+function rvDraw(id){var d=RV[id],b=$('rv'+id);if(!d||!b)return;var S=d.sub,ed=d.edit,h='<div class="le">';
+  h+=rvSummary(d);
+  if(d.notes&&d.notes.length)h+='<div class="msg" style="text-align:right;margin:0 0 8px">🗒️ '+d.notes.map(function(n){return '<b>'+esc(n.type)+'</b> — '+esc(n.by)+' — '+esc(n.dt)+(n.note?': '+esc(n.note):'')}).join('<br>🗒️ ')+'</div>';
+  if(ed)h+='<div class="msg" style="text-align:right;color:var(--o);margin:0 0 6px">✏️ وضع التعديل — غيّر اللي محتاجه ودوس «حفظ التعديلات». الصور وأفراد الأسرة بيتعدلوا من كوبو.</div>';
+  RSPEC.items.forEach(function(g){
+    if(g.k==='group'){var rows='';
+      g.items.forEach(function(f){var key=g.n+'/'+f.n,v=S[key];
+        if(ed&&rvEditF(f))rows+=rvRow(f.l||f.n,rvInput(f,key,v));
+        else if(rvShowF(f)&&v!=null&&v!=='')rows+=rvRow(f.l||RV_CALC[f.n]||f.n,rvVal(f,v))});
+      if(rows)h+='<details'+(ed||g.n==='g_family'||g.n==='g_result'?' open':'')+' style="margin-bottom:6px"><summary style="font-weight:700;cursor:pointer;padding:4px 0">'+esc(g.l)+'</summary><table style="width:100%;border-collapse:collapse;font-size:14px">'+rows+'</table></details>'}
+    else if(g.k==='repeat'){var R=S[g.n]||[];if(!R.length)return;
+      h+='<details style="margin-bottom:6px"'+(g.n==='members_r'?' open':'')+'><summary style="font-weight:700;cursor:pointer;padding:4px 0">'+esc(g.l)+' ('+R.length+')</summary>'+R.map(function(row,i){var rows='';
+        g.items.forEach(function(f){var v=row[g.n+'/'+f.n];if(rvShowF(f)&&v!=null&&v!=='')rows+=rvRow(f.l,rvVal(f,v))});
+        return '<div style="border:1px dashed var(--line);border-radius:10px;padding:4px 6px;margin:4px 0"><b style="font-size:13px">'+esc(g.ih||'فرد')+' '+(i+1)+'</b><table style="width:100%;border-collapse:collapse;font-size:13px">'+rows+'</table></div>'}).join('')+'</details>'}});
+  if(d.att)h+='<div class="msg" style="text-align:right;margin:0 0 6px">📎 '+d.att+' صورة مرفوعة — '+(ADMIN?'<a href="'+LINKS.koboData+'" target="_blank" rel="noopener" style="color:var(--g)">افتحها من كوبو</a>':'الإدارة تقدر تشوفها من كوبو')+'</div>';
+  var A=[];
+  if(ed){A.push('<button class="p" onclick="rvSave('+id+')">💾 حفظ التعديلات</button>');A.push('<button onclick="RV['+id+'].edit=false;rvDraw('+id+')">إلغاء</button>')}
+  else{
+    if(d.canEdit)A.push('<button onclick="RV['+id+'].edit=true;rvDraw('+id+')">✏️ تعديل البحث</button>');
+    if(d.admin&&d.vs!=='validation_status_approved'){A.push('<button class="p" onclick="rDecide('+id+',\'approve\')">✅ اعتماد</button>');A.push('<button onclick="rvBack('+id+')">↩ إرجاع للباحث</button>');A.push('<button onclick="rDecide('+id+',\'reject\')">✖ رفض</button>');A.push('<button onclick="rDel('+id+')" style="color:var(--red)">🗑 حذف</button>')}
+    if(d.vs==='validation_status_on_hold')A.push('<button class="p" onclick="rvResend('+id+')">📤 خلصت التعديل — رجّعه للمراجعة</button>');
+    A.push('<button onclick="$(\'rv'+id+'\').innerHTML=\'\'">إخفاء</button>')}
+  h+='<div class="ra" style="margin-top:8px">'+A.join('')+'</div><div id="rvm'+id+'"></div></div>';
+  b.innerHTML=h}
+function rvSave(id){var d=RV[id],b=$('rv'+id),ch={},S=d.sub;
+  [].forEach.call(b.querySelectorAll('[data-k]'),function(el){var k=el.getAttribute('data-k'),v=String(el.value).trim(),o=S[k]==null?'':String(S[k]);if(v!==o)ch[k]=v});
+  [].forEach.call(b.querySelectorAll('[data-km]'),function(el){var k=el.getAttribute('data-km'),v=[].filter.call(el.querySelectorAll('input'),function(x){return x.checked}).map(function(x){return x.value}).join(' '),o=S[k]==null?'':String(S[k]);if(v!==o)ch[k]=v});
+  if(Object.keys(ch).some(function(k){return /^g_income\/(inc|obl)_/.test(k)})){var V=function(k){return Number(k in ch?ch[k]:S[k])||0},I=0,O=0;
+    Object.keys(RFF).forEach(function(n){if(RFF[n].k!=='integer')return;if(/^inc_/.test(n))I+=V('g_income/'+n);if(/^obl_/.test(n))O+=V('g_income/'+n)});
+    ch['g_income/inc_total']=String(I);ch['g_income/obl_total']=String(O);ch['g_income/net']=String(I-O)}
+  var n=Object.keys(ch).length;if(!n){d.edit=false;rvDraw(id);return}
+  $('rvm'+id).innerHTML='<div class="msg">جاري حفظ التعديلات في كوبو…</div>';
+  call('resEdit',[PIN,id,ch],function(){b.innerHTML='';rView(id)},function(m){$('rvm'+id).innerHTML='<div class="err">'+esc(rvErr(m,'resEdit'))+'</div>'})}
+function rvBack(id){var note=prompt('إرجاع البحث للباحث — اكتب المطلوب يعدّله إيه:');if(note==null)return;note=note.trim();if(!note){alert('لازم تكتب الملاحظة');return}
+  var c=$('le'+id);c.innerHTML='<div class="msg">جاري الإرجاع…</div>';
+  call('resReturn',[PIN,id,note],function(){var r=RS.filter(function(x){return x.id===id})[0];if(r){r.vs='validation_status_on_hold';r.note=note}delete RV[id];rDraw();var cc=$('le'+id);if(cc)cc.innerHTML='<div class="msg" style="color:#2B4C8C;font-weight:700">↩ البحث اترجع للباحث بالملاحظة</div>'},
+   function(m){c.innerHTML='<div class="err">'+esc(rvErr(m,'resReturn'))+'</div>'})}
+function rvResend(id){var note=prompt('ملاحظة للإدارة (اختياري) — عدّلت إيه؟','');if(note==null)return;
+  call('resResubmit',[PIN,id,note],function(){var r=RS.filter(function(x){return x.id===id})[0];if(r){r.vs='';r.note=''}delete RV[id];rDraw();var cc=$('le'+id);if(cc)cc.innerHTML='<div class="msg" style="color:var(--g);font-weight:700">📤 البحث رجع للإدارة للمراجعة</div>'},
+   function(m){alert(rvErr(m,'resResubmit'))})}
 var AL=null,ATYPES=['إطعام','لحوم','زكاة','شنطة مواد غذائية','كسوة','مبلغ نقدي','إعانة طارئة','كفالة','أخرى'],
   AFQ={'مرة واحدة':'الأسرة تستلم مرة واحدة بس في العطاء ده','يومي':'مرة كل يوم (زي وجبة الخير)','شهري':'مرة كل شهر','بدون حد':'يتسجّل كل مرة من غير منع تكرار'},
   AEL={'كل النشطين':'كل الأسر اللي حالتها نشط','تصنيف أ':'الأسر تصنيف أ بس','تصنيف أ و ب':'الأسر تصنيف أ و ب','الكشف فقط':'اللي في كشف متجهز مسبقاً بس','المكفولين':'الأسر المكفولة'};
@@ -754,7 +827,7 @@ function rDecide(id,dec){var r=RS.filter(function(x){return x.id===id})[0],c=$('
   rGo(id,dec,'')}
 function rGo(id,dec,nf){var r=RS.filter(function(x){return x.id===id})[0],c=$('le'+id);
   c.innerHTML='<div class="msg">جاري '+(dec==='approve'?'الاعتماد وتحديث ملف الأسرة':'الرفض')+'…</div>';
-  call('resDecide',[PIN,id,dec,'',nf],function(d){r.vs=d.rejected?'validation_status_not_approved':'validation_status_approved';if(d.fn)r.fn=d.fn;rDraw();
+  call('resDecide',[PIN,id,dec,'',nf],function(d){r.vs=d.rejected?'validation_status_not_approved':'validation_status_approved';if(d.fn)r.fn=d.fn;delete RV[id];rDraw();
     var cc=$('le'+id)||$('rMsg');if(cc)cc.innerHTML='<div class="msg" style="color:var(--g);font-weight:700">'+(d.rejected?'✖ اترفض':'✅ اتعتمد — '+(d.isNew?'اتعمل ملف جديد رقم '+esc(d.fn):'ملف '+esc(d.fn)+' اتحدّث ('+d.changes+' تعديل)'))+'</div>'},
    function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'})}
 function rEdit(id){var b=$('le'+id);if(b.innerHTML){b.innerHTML='';return}
