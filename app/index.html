@@ -546,6 +546,26 @@ function rvInput(f,key,v){v=v==null?'':String(v);var a=' data-k="'+esc(key)+'" c
   if(f.app==='multiline')return '<textarea'+a+' rows="3">'+esc(v)+'</textarea>';
   return '<input'+a+' value="'+esc(v)+'"'+(f.k==='geopoint'?' placeholder="خط العرض خط الطول" dir="ltr"':'')+'>'}
 function rvErr(m,fn){return /غير معروف/.test(m)?'محتاج تحديث السيرفر ('+fn+')':m}
+/* البيانات الناقصة: بيقيّم شروط الاستمارة (rel/req) على البحث نفسه */
+var RVG={};RSPEC.items.forEach(function(g){(g.items||[]).forEach(function(f){RVG[f.n]=g.k==='group'?g.n:''})});
+function rvV(S,row,n){var f=RFF[n];if(!f)return '';var x=f.rep?(row?row[f.rep+'/'+n]:''):S[(RVG[n]||'')+'/'+n];x=x==null?'':x;if(f.k==='integer'&&x!=='')return Number(x);return x}
+var RVC={};function rvEval(e,S,row,cur){if(!e)return true;var fn=RVC[e]||(RVC[e]=new Function('v','sel','cnt','co','rx','V','return ('+e+')'));
+  try{return fn(function(n){return rvV(S,row,n)},function(a,k){return (' '+a+' ').indexOf(' '+k+' ')>=0},function(a){return a?String(a).split(' ').filter(String).length:0},function(x,d){return x===''||x==null||isNaN(x)?d:Number(x)},function(V,p){return new RegExp(p).test(String(V))},cur)}catch(err){return true}}
+function rvRel(f,S,row){return !f.rel||!!rvEval(f.rel,S,row)}
+function rvReq(f,S,row){if(!f.req||f.k==='calculate'||f.k==='note'||f.k==='barcode')return false;return f.req==='true'||!!rvEval(f.req,S,row)}
+function rvCount(g,S){if(!g.count)return null;var n=Number(rvEval(g.count,S,null));return isNaN(n)?null:Math.max(0,n)}
+function rvMissing(S){var req=[],opt=[];
+  RSPEC.items.forEach(function(g){
+    if(g.k==='group')g.items.forEach(function(f){var v=S[g.n+'/'+f.n];if(!rvShowF(f)||f.k==='calculate'||!rvRel(f,S,null)||(v!=null&&v!==''))return;(rvReq(f,S,null)?req:opt).push(f.l||f.n)});
+    else if(g.k==='repeat'){var R=S[g.n]||[],want=rvCount(g,S);
+      if(want!=null&&R.length<want)req.push(g.l+': المفروض '+want+' والمسجّل '+R.length);
+      R.forEach(function(row,i){g.items.forEach(function(f){var v=row[g.n+'/'+f.n];if(!rvShowF(f)||!rvRel(f,S,row)||(v!=null&&v!==''))return;(rvReq(f,S,row)?req:opt).push((g.ih||'فرد')+' '+(i+1)+': '+(f.l||f.n))})})}});
+  return {req:req,opt:opt}}
+function rvMissBox(M){
+  var h=M.req.length?'<div style="background:#FDEDEC;border:1px solid #F5C6C2;border-radius:12px;padding:8px 10px;margin:0 0 8px"><b style="color:var(--red)">⚠️ بيانات مطلوبة ناقصة ('+M.req.length+')</b><br>'+M.req.map(function(x){return '• '+esc(x)}).join('<br>')+'</div>'
+    :'<div class="msg" style="text-align:right;margin:0 0 8px;color:var(--g);font-weight:700">✔ كل الخانات المطلوبة متعبية</div>';
+  if(M.opt.length)h+='<details style="margin:0 0 8px"><summary style="cursor:pointer;color:var(--mut)">خانات اختيارية فاضية ('+M.opt.length+')</summary><div class="msg" style="text-align:right;margin:4px 0 0">'+M.opt.map(esc).join('، ')+'</div></details>';
+  return h}
 function rView(id){var b=$('rv'+id);if(!b)return;if(b.innerHTML){b.innerHTML='';return}
   b.innerHTML='<div class="le"><div class="spin">جاري تحميل البحث كامل من كوبو…</div></div>';
   call('resGet',[PIN,id],function(d){RV[id]=d;d.edit=false;rvDraw(id)},function(m){b.innerHTML='<div class="le"><div class="err">'+esc(rvErr(m,'resGet'))+'</div></div>'})}
@@ -562,15 +582,25 @@ function rvDraw(id){var d=RV[id],b=$('rv'+id);if(!d||!b)return;var S=d.sub,ed=d.
   h+=rvSummary(d);
   if(d.notes&&d.notes.length)h+='<div class="msg" style="text-align:right;margin:0 0 8px">🗒️ '+d.notes.map(function(n){return '<b>'+esc(n.type)+'</b> — '+esc(n.by)+' — '+esc(n.dt)+(n.note?': '+esc(n.note):'')}).join('<br>🗒️ ')+'</div>';
   if(ed)h+='<div class="msg" style="text-align:right;color:var(--o);margin:0 0 6px">✏️ وضع التعديل — غيّر اللي محتاجه ودوس «حفظ التعديلات». الصور وأفراد الأسرة بيتعدلوا من كوبو.</div>';
+  var MS=rvMissing(S);
+  if(!ed)h+=rvMissBox(MS);
   RSPEC.items.forEach(function(g){
-    if(g.k==='group'){var rows='';
+    if(g.k==='group'){var rows='',miss=0;
       g.items.forEach(function(f){var key=g.n+'/'+f.n,v=S[key];
-        if(ed&&rvEditF(f))rows+=rvRow(f.l||f.n,rvInput(f,key,v));
-        else if(rvShowF(f)&&v!=null&&v!=='')rows+=rvRow(f.l||RV_CALC[f.n]||f.n,rvVal(f,v))});
-      if(rows)h+='<details'+(ed||g.n==='g_family'||g.n==='g_result'?' open':'')+' style="margin-bottom:6px"><summary style="font-weight:700;cursor:pointer;padding:4px 0">'+esc(g.l)+'</summary><table style="width:100%;border-collapse:collapse;font-size:14px">'+rows+'</table></details>'}
-    else if(g.k==='repeat'){var R=S[g.n]||[];if(!R.length)return;
-      h+='<details style="margin-bottom:6px"'+(g.n==='members_r'?' open':'')+'><summary style="font-weight:700;cursor:pointer;padding:4px 0">'+esc(g.l)+' ('+R.length+')</summary>'+R.map(function(row,i){var rows='';
-        g.items.forEach(function(f){var v=row[g.n+'/'+f.n];if(rvShowF(f)&&v!=null&&v!=='')rows+=rvRow(f.l,rvVal(f,v))});
+        if(ed){if(rvEditF(f))rows+=rvRow(f.l||f.n,rvInput(f,key,v));return}
+        if(!rvShowF(f)||!rvRel(f,S,null))return;
+        if(f.k==='calculate'&&(v==null||v===''))return;
+        if(v!=null&&v!==''){rows+=rvRow(f.l||RV_CALC[f.n]||f.n,rvVal(f,v));return}
+        var rq=rvReq(f,S,null);if(rq)miss++;
+        rows+=rvRow(f.l||f.n,rq?'<b style="color:var(--red)">⚠️ ناقص — مطلوب</b>':'<span style="color:#9AA5A0">— مش متعبي</span>')});
+      if(rows)h+='<details open style="margin-bottom:6px"><summary style="font-weight:700;cursor:pointer;padding:4px 0">'+esc(g.l)+(miss?' <span class="badge no">'+miss+' ناقص</span>':'')+'</summary><table style="width:100%;border-collapse:collapse;font-size:14px">'+rows+'</table></details>'}
+    else if(g.k==='repeat'&&!ed){var R=S[g.n]||[],want=rvCount(g,S);
+      if(!R.length&&!want)return;
+      var gap=want!=null&&R.length<want?'<div class="msg" style="text-align:right;margin:4px 0;color:var(--red)">⚠️ المفروض '+want+' — المسجّل '+R.length+' بس</div>':'';
+      h+='<details open style="margin-bottom:6px"><summary style="font-weight:700;cursor:pointer;padding:4px 0">'+esc(g.l)+' ('+R.length+')'+(gap?' <span class="badge no">ناقص</span>':'')+'</summary>'+gap+R.map(function(row,i){var rows='';
+        g.items.forEach(function(f){var v=row[g.n+'/'+f.n];if(!rvShowF(f)||!rvRel(f,S,row))return;
+          if(v!=null&&v!==''){rows+=rvRow(f.l,rvVal(f,v));return}
+          rows+=rvRow(f.l,rvReq(f,S,row)?'<b style="color:var(--red)">⚠️ ناقص — مطلوب</b>':'<span style="color:#9AA5A0">— مش متعبي</span>')});
         return '<div style="border:1px dashed var(--line);border-radius:10px;padding:4px 6px;margin:4px 0"><b style="font-size:13px">'+esc(g.ih||'فرد')+' '+(i+1)+'</b><table style="width:100%;border-collapse:collapse;font-size:13px">'+rows+'</table></div>'}).join('')+'</details>'}});
   if(d.att)h+='<div class="msg" style="text-align:right;margin:0 0 6px">📎 '+d.att+' صورة مرفوعة — '+(ADMIN?'<a href="'+LINKS.koboData+'" target="_blank" rel="noopener" style="color:var(--g)">افتحها من كوبو</a>':'الإدارة تقدر تشوفها من كوبو')+'</div>';
   var A=[];

@@ -427,9 +427,9 @@ drawPosts();
 <section id="board" style="display:none"><div class="wrap">
   <div class="eyebrow">👥 مين بيدير الجمعية</div>
   <h2 class="sh">مجلس الإدارة والأعضاء</h2>
-  <h3 class="bh">أعضاء مجلس الإدارة العاملين</h3>
+  <h3 class="bh" id="bWorkH">أعضاء مجلس الإدارة العاملين</h3>
   <div class="bgrid" id="bWork"><div class="bm"><b>جاري التحميل…</b></div></div>
-  <h3 class="bh">الأعضاء المنتسبين</h3>
+  <h3 class="bh" id="bAffH">الأعضاء المنتسبين</h3>
   <div class="bgrid" id="bAff"><div class="bm"><b>جاري التحميل…</b></div></div>
 </div></section>
 
@@ -554,8 +554,9 @@ function drawBoard(info){var B=(info&&info.board)||[];
   B=B.filter(function(m){return String(m.name||'').trim()});
   function card(m){return m.name?'<div class="bm"><b>'+pe(m.name)+'</b><span>'+pe(m.title||'')+'</span></div>':'<div class="bm e"><span>'+pe(m.title||'')+'</span><b>الاسم هيتعلن قريبًا</b></div>'}
   var w=B.filter(function(m){return m.kind!=='منتسب'}),a=B.filter(function(m){return m.kind==='منتسب'});
-  document.getElementById('bWork').innerHTML=w.map(card).join('')||'<div class="bm e"><b>الأسماء هتتعرض قريبًا</b></div>';
-  document.getElementById('bAff').innerHTML=a.map(card).join('')||'<div class="bm e"><b>الأسماء هتتعرض قريبًا</b></div>'}
+  /* أي مجموعة مفيهاش أسماء لسه بتستخبى بعنوانها */
+  [['bWork',w],['bAff',a]].forEach(function(x){var on=x[1].length;document.getElementById(x[0]).innerHTML=x[1].map(card).join('');
+    document.getElementById(x[0]).style.display=on?'':'none';document.getElementById(x[0]+'H').style.display=on?'':'none'})}
 drawNums(null);
 pubCall('pubInfo').then(function(d){drawNums(d);drawBoard(d);
   if(d.fb&&d.fb.length&&window.FB_POSTS){var have={};FB_POSTS.forEach(function(p){have[p[0]]=1});var add=d.fb.filter(function(p){return !have[p[0]]});
