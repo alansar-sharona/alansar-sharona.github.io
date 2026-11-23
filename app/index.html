@@ -100,13 +100,35 @@ input:focus{outline:none;border-color:var(--g)}
 #pr th.hx{background:none;border:0;padding:0 0 4px;font-weight:400;text-align:right;font-size:10.5pt}#pr td.fx{border:0;padding:4mm 0 0;height:auto!important}#pr tfoot{display:table-footer-group}
 #pr .sigs{display:flex;justify-content:space-around;font-weight:700;text-align:center;font-size:10pt}#pr .sigs div{min-width:45mm}#pr .sigs i{display:block;font-style:normal;border-top:1px dotted #000;margin-top:9mm;padding-top:2px;font-weight:400;font-size:8.5pt}
 @page{margin:9mm;@bottom-center{content:"صفحة " counter(page) " من " counter(pages);font-size:9pt}}
+/* ===== ساعدني + الإشعارات ===== */
+@media(max-width:430px){.top{flex-wrap:wrap}.top>div:last-child{flex-wrap:wrap;justify-content:flex-end}.top>div:last-child a{font-size:12px!important;padding:6px 8px!important}.hbtn{padding:6px 8px;font-size:13px}}
+.hbtn{position:relative;background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:10px;padding:6px 10px;font:inherit;font-size:14px;white-space:nowrap;cursor:pointer}
+.hbtn i{position:absolute;top:-6px;left:-6px;min-width:19px;height:19px;border-radius:10px;background:var(--o);color:#fff;font-style:normal;font-size:11px;font-weight:700;line-height:19px;text-align:center;padding:0 4px}
+.hp-t{background:#fff;border-radius:16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}
+.hp-t>button{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;padding:13px 14px;cursor:pointer;font-weight:700;font-size:15px}
+.hp-t>button small{color:var(--mut);font-weight:400;font-size:12px;white-space:nowrap}
+.hp-b{padding:0 14px 14px;font-size:15px;line-height:1.8}
+.hp-b ol{margin:0;padding-inline-start:22px}.hp-b li{margin-bottom:4px}
+.hp-b .tip{background:#F1F8F3;border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+.hp-v{display:inline-flex;align-items:center;gap:6px;margin:4px 0 10px;border:0;border-radius:12px;padding:9px 14px;background:var(--o);color:#fff;font:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.vp{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;padding:12px}
+.vp .bx{position:relative;width:min(900px,100%);aspect-ratio:16/9;max-height:86vh;background:#000;border-radius:12px;overflow:hidden}
+.vp iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vp .x{position:absolute;top:14px;left:14px;z-index:2;width:42px;height:42px;border-radius:50%;border:0;background:#fff;font-size:20px;cursor:pointer}
+.vp .ttl{position:absolute;bottom:14px;right:14px;left:14px;color:#fff;text-align:center;font-size:14px}
+.nt{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;background:#fff;border-radius:14px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,.05);border-right:4px solid transparent}
+.nt.un{border-right-color:var(--o);background:#FFFBF5}
+.nt .ic{font-size:22px;line-height:1.2}
+.nt .bd{flex:1;min-width:0}.nt b{font-size:14px}.nt p{margin:2px 0 6px;font-size:14px;line-height:1.6;word-wrap:break-word}
+.nt small{color:var(--mut);font-size:12px}
+.nt .ra button{min-width:0;flex:0 0 auto;padding:6px 12px;font-size:13px}
 </style>
 </head>
 <body>
 <header>
   <div class="top">
     <div class="brand"><img class="logo" src="data:image/jpeg;base64,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" alt="شعار الجمعية"><div><b>منصة الأنصار</b><small>جمعية الأنصار بشارونة</small></div></div>
-    <div style="display:flex;gap:6px;align-items:center"><a href="../" style="color:#fff;text-decoration:none;background:rgba(255,255,255,.15);border-radius:10px;padding:6px 10px;font-size:14px;white-space:nowrap">🌐 الصفحة العامة</a><button id="logout" class="hide" onclick="logout()">خروج</button></div>
+    <div style="display:flex;gap:6px;align-items:center"><a href="../" style="color:#fff;text-decoration:none;background:rgba(255,255,255,.15);border-radius:10px;padding:6px 10px;font-size:14px;white-space:nowrap">🌐 الصفحة العامة</a><button id="hBtn" class="hbtn hide" onclick="openHelp()" title="ساعدني">🙋 ساعدني</button><button id="nBell" class="hbtn hide" onclick="openNotif()" title="الإشعارات" aria-label="الإشعارات">🔔<i id="nCnt" class="hide">0</i></button><button id="logout" class="hide" onclick="logout()">خروج</button></div>
   </div>
   <div class="hello" id="hello"></div>
 </header>
@@ -217,6 +239,26 @@ input:focus{outline:none;border-color:var(--g)}
     <div class="card sumbar"><div id="pSum">جاري التحميل…</div><button class="btn" onclick="pPrint()">🖨️ طباعة / حفظ PDF</button>
       <div class="msg">على الموبايل: من شاشة الطباعة اختار «حفظ كـ PDF»</div></div>
   </section>
+  <section id="s-help" class="hide">
+    <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
+    <div class="card"><h2>🙋 ساعدني</h2>
+      <div class="msg" style="text-align:right;margin:0 0 8px">اختار المهمة اللي عايز تعملها، وهتلاقي الخطوات بالترتيب — ولو فيه فيديو هتلاقي زرار «شاهد الفيديو».</div>
+      <input id="hQ" class="tx" placeholder="دوّر: بحث، كوبو، كشف، صور، PIN…" oninput="hDraw()">
+    </div>
+    <div id="hList"></div>
+    <div class="card" id="hContact"><h2>📨 تواصل مع المدير</h2>
+      <div class="msg" style="text-align:right;margin:0 0 8px">مش لاقي إجابة؟ اكتب سؤالك أو المشكلة اللي قابلتك، وهتوصل لمدير النظام جوه المنصة.</div>
+      <textarea id="hMsg" class="tx" rows="3" maxlength="1000" placeholder="مثلاً: البحث مش بيتبعت وبيقول…"></textarea>
+      <button class="btn" onclick="hSend()">📨 ابعت للمدير</button><div id="hSent" class="msg"></div>
+    </div>
+  </section>
+  <section id="s-notif" class="hide">
+    <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">🔔 الإشعارات</h2><button class="ra" style="all:unset;cursor:pointer;color:var(--g);font-weight:700;font-size:14px" onclick="nRead('all')">✔ علّم الكل مقروء</button></div>
+      <div class="rf chips" id="nF" style="margin:10px 0 0"></div>
+    </div>
+    <div id="nList"><div class="spin">جاري التحميل…</div></div>
+  </section>
 </main>
 <div id="pr"></div>
 
@@ -241,7 +283,7 @@ function call(fn,args,ok,fail){
     .then(function(j){j.ok?ok(j.data):fail(j.error||'حصل خطأ')})
     .catch(function(){fail('مفيش اتصال بالنت — حاول تاني')});
 }
-function show(id){['s-login','s-home','s-org','s-print','s-res','s-fam','s-rf','s-act'].forEach(function(s){$(s).classList.toggle('hide',s!==id)})}
+function show(id){[].forEach.call(document.querySelectorAll('main > section'),function(s){s.classList.toggle('hide',s.id!==id)});if(id!=='s-help')hClose()}
 
 function doLogin(p){
   var pin=p||$('pin').value.trim(); $('loginErr').textContent='';
@@ -249,14 +291,14 @@ function doLogin(p){
   call('home',[pin],function(h){PIN=pin;store('ansar_pin',pin);render(h)},
     function(m){store('ansar_pin',null);show('s-login');$('loginErr').textContent=m});
 }
-function logout(){PIN='';store('ansar_pin',null);store('ansar_act',null);$('pin').value='';$('hello').textContent='';$('logout').classList.add('hide');show('s-login')}
+function logout(){PIN='';clearInterval(NTT);NT=null;HV=null;$('hBtn').classList.add('hide');$('nBell').classList.add('hide');store('ansar_pin',null);store('ansar_act',null);$('pin').value='';$('hello').textContent='';$('logout').classList.add('hide');show('s-login')}
 
 function tile(href,ic,title,sub,cls,tag){
   return '<a class="tile '+(cls||'')+'" href="'+href+'"'+(/^https?:/.test(href)?' target="_blank" rel="noopener"':'')+'>'+
     (tag?'<i class="tag">'+tag+'</i>':'')+'<div class="ic">'+ic+'</div><div><b>'+title+'</b><br><span>'+sub+'</span></div></a>';
 }
 function render(h){
-  show('s-home'); $('logout').classList.remove('hide'); store('ansar_name',h.name); ADMIN=!!h.admin;
+  show('s-home'); $('logout').classList.remove('hide'); store('ansar_name',h.name); ADMIN=!!h.admin; ROLE=h.role||''; CANDIST=!!h.canDistribute; $('hBtn').classList.remove('hide'); nStart();
   $('hello').textContent='أهلاً '+h.name.split(' ')[0]+' — '+h.role;
   var st=h.status||{};
   $('stats').innerHTML=
@@ -278,6 +320,7 @@ function render(h){
   t+=tile('javascript:openOrg()','🏛️','الجمعية','بيانات الإشهار واللائحة ومجلس الإدارة');
   t+=tile('#','🤝','الكفالات','كفالات الأسر والمتبرعين','soon','قريباً');
   t+=tile('../','🌐','الصفحة العامة','صفحة الجمعية للناس — الأنشطة وآخر التوزيعات');
+  t+=tile('javascript:openHelp()','🙋','ساعدني','شرح كل مهمة خطوة بخطوة — وفيديو لو موجود');
   $('tiles').innerHTML=t;
   var o=h.open||[];
   $('actsCard').classList.toggle('hide',!h.canDistribute);
@@ -829,6 +872,175 @@ function pPrint(){
   window.onafterprint=function(){document.title=old};
   setTimeout(function(){window.print()},350)}
 (function(){var p=load('ansar_pin');if(p)doLogin(p);else show('s-login')})();
+/* ===== ساعدني ===== */
+/* كل موضوع: id (نفس «معرّف_الموضوع» في تاب فيديوهات_المساعدة)، العنوان، الأدوار (all / admin / sys / res / dist)، الخطوات، ونصيحة */
+var ROLE='',CANDIST=false;
+var HELP=[
+ {id:'pin',t:'نسيت الرقم السري (PIN) أو مش عارف أدخل',r:['all'],s:[
+  'الرقم السري بتاخده من إدارة الجمعية بس — مفيش زرار «نسيت الرقم».',
+  'لو نسيته: ابعت لمدير النظام (م. أحمد البطل) رسالة خاصة، وهو يبعتلك الرقم في رسالة خاصة برضه.',
+  'لو الدخول بيقول خطأ: اتأكد إن النت شغال، واكتب الرقم من غير مسافات، وجرّب تاني.',
+  'لو بتشتغل على موبايل حد تاني، دوس «خروج» فوق بعد ما تخلص.'],
+  tip:'ما تبعتش الرقم السري في جروب ولا تكتبه لحد — الرقم ده بيفتح بيانات الأسر.'},
+ {id:'res_new',t:'إزاي أعمل بحث جديد من المنصة',r:['admin','res'],s:[
+  'من الرئيسية دوس «📋 الأبحاث الاجتماعية» وبعدين «📝 بحث جديد».',
+  'اكتب الرقم القومي لرب الأسرة (14 رقم) أو رقم الملف، ودوس «ابدأ».',
+  'لو الأسرة مسجلة بياناتها هتتملى لوحدها، ولو جديدة هيظهرلك «🆕 الحالة دي مش مسجلة».',
+  'املا كل صفحة ودوس «التالي ←». الخانات اللي عليها * لازم تتملى، والغلط بيظهر بالأحمر تحت الخانة.',
+  'في صفحة الأفراد بيظهرلك كارت لكل فرد على حسب «عدد الأفراد» اللي كتبته.',
+  'في آخر صفحة دوس «📤 إرسال البحث». البحث هيظهر في «الأبحاث» مستني اعتماد الإدارة.'],
+  tip:'لو النت فصل في النص، البحث بيتحفظ مسودة على الموبايل. افتح «بحث جديد» بنفس الرقم وهيرجعلك اللي كتبته.'},
+ {id:'kobo_offline',t:'إزاي أبعت البحث من كوبو من غير نت',r:['admin','res'],s:[
+  'نزّل تطبيق KoboCollect من Play Store.',
+  'أول مرة بس (وانت فيه نت): من الإعدادات ← Server، حط الرابط https://kc.kobotoolbox.org واسم المستخدم والباسورد بتوعك على كوبو.',
+  'دوس «Download form» ونزّل استمارة البحث بتاعة الجمعية.',
+  'في الميدان من غير نت: «Start new form» واملا الاستمارة، وفي الآخر احفظها كـ Finalize.',
+  'أول ما الموبايل يتوصل بالنت: افتح «Ready to send» (أو «Send finalized form») واختار الأبحاث ودوس «Send».',
+  'البحث هيوصل المنصة لوحده ويظهر في «الأبحاث» مستني اعتماد.'],
+  tip:'لو الاستمارة مش بتنزل على موبايلك: ابعت من المنصة بزرار «📝 بحث جديد» وقت ما يكون فيه نت، أو من لينك «افتح استمارة كوبو».'},
+ {id:'fam_search',t:'إزاي أدور على ملف أسرة',r:['admin','res'],s:[
+  'من الرئيسية دوس «🗂️ ملفات الأسر».',
+  'اكتب الاسم أو رقم الملف أو الرقم القومي أو التليفون، ودوس «بحث».',
+  'لو فيه نتيجة واحدة الملف هيفتح على طول، ولو أكتر دوس على الأسرة اللي عايزها.',
+  'من الملف تقدر: «📞 اتصال»، «🗺️ الخريطة»، أو «📝 بحث جديد للأسرة».'],
+  tip:'اكتب حرفين على الأقل. لو الاسم مش لاقيه، جرّب جزء منه أو رقم الملف.'},
+ {id:'fam_edit',t:'إزاي أعدّل أو أحذف ملف أسرة',r:['admin'],s:[
+  'افتح الملف من «🗂️ ملفات الأسر».',
+  'دوس «✏️ تعديل البيانات»، وعدّل اللي محتاج بس، وبعدين «💾 حفظ التعديلات».',
+  'لتغيير رقم الملف: «🔢 تغيير رقم الملف» — بيتغيّر في كل الشيتات والكارنيه القديم بيفضل شغال.',
+  'للحذف: «🗑 حذف الملف» واكتب السبب. الحذف ناعم: الملف بيبقى «محذوف» ومش بيضيع.'],
+  tip:'كل تعديل بيتسجل باسمك في «سجل التعديلات» وبيوصل إشعار للإدارة.'},
+ {id:'res_review',t:'إزاي أراجع وأعتمد بحث',r:['admin'],s:[
+  'من «📋 الأبحاث الاجتماعية» اختار «⏳ مستني اعتماد».',
+  'راجع البيانات، ولو فيه لوكيشن دوس «🗺️ افتح على الخريطة».',
+  'دوس «✅ اعتماد البحث». لو الحالة جديدة هيظهرلك رقم الملف التالي في المنطقة، تقدر تغيّره وبعدين OK.',
+  'لو البحث غلط دوس «✖ رفض»، ولو مكرر «🗑 حذف (مكرر/غلط)».'],
+  tip:'بعد الاعتماد البيانات بتتكتب في ملف الأسرة، وكل تغيير بيتسجل في «سجل التعديلات».'},
+ {id:'res_loc',t:'إزاي أضيف لوكيشن لبيت الأسرة',r:['admin','res'],s:[
+  'من «📋 الأبحاث الاجتماعية» اختار «ناقص لوكيشن» عشان تشوف الأبحاث اللي محتاجة.',
+  'دوس «➕ ضيف لوكيشن» على كارت البحث.',
+  'لو انت جنب البيت دوس «📍 موقعي الحالي»، أو الصق لينك جوجل ماب.',
+  'دوس «حفظ».'],
+  tip:'اسمح للمتصفح يوصل للموقع لما يسألك، وخلي الـ GPS شغال.'},
+ {id:'act_new',t:'إزاي أسجل عطاء جديد',r:['admin'],s:[
+  'من الرئيسية دوس «⚙️ إدارة العطاءات» وبعدين «➕ عطاء جديد».',
+  'اكتب اسم العطاء (مثلاً: لحوم عيد الأضحى 1447) واختار النوع.',
+  'اكتب الوحدة (كيلو / شنطة / وجبة / جنيه) ونصيب كل أسرة. المبلغ بالجنيه اختياري.',
+  'اختار مين يستحق، وكل أسرة تستلم كام مرة، وهتسجّل المستفيدين «بالأسماء» ولا «إجمالي».',
+  'دوس «💾 حفظ». العطاء هيظهر في صفحة «توزيع العطاءات». تقدر تفتحه «🟢 افتحه» أو تقفله «⏸ اقفله».'],
+  tip:'أي عطاء بيتعمل هنا بيظهر في التوزيع، وأي توزيع بيظهر في الصفحة العامة لوحده.'},
+ {id:'dist_scan',t:'إزاي أسجل استلام بالسكان في صفحة التوزيع',r:['dist','admin'],s:[
+  'من الرئيسية دوس «🎁 توزيع العطاءات» (أو افتح صفحة التوزيع) وادخل بالرقم السري.',
+  'اختار العطاء اللي بتوزّعه.',
+  'دوس «📷 اسكان الباركود» ووجّه الكاميرا على QR الكارنيه أو الاستمارة — أو اكتب رقم الملف أو الرقم القومي ودوس «بحث».',
+  'راجع الاسم مع البطاقة، ولو مطابق دوس «✔ تأكيد التسليم».',
+  'لو ظهر «✖ ممنوع التسليم» ما تسلّمش — الأسرة استلمت قبل كده أو مش مستحقة. ولو «✖ مش لاقي الأسرة» راجع الرقم.'],
+  tip:'آخر تسليمات النهارده بتظهر تحت، عشان تتأكد إن التسليم اتسجل.'},
+ {id:'act_done',t:'إزاي أعمل «تم التوزيع»',r:['admin'],s:[
+  'من «⚙️ إدارة العطاءات» (أو صفحة التوزيع) دوس «✅ تم التوزيع» على كارت العطاء.',
+  'اكتب عدد الأسر المستفيدة، والوحدة، ونصيب كل أسرة — الإجمالي بيتحسب لوحده.',
+  'اكتب تاريخ التوزيع، والمبلغ بالجنيه لو فيه (اختياري).',
+  'دوس «✅ تأكيد». العطاء بيتقفل ويظهر في الصفحة العامة.'],
+  tip:'الأسماء تقدر تكمّل تسجيلها بعدين عادي، وهتتسجل بتاريخ التوزيع.'},
+ {id:'act_photos',t:'إزاي أرفع صور وفيديو التوثيق',r:['admin'],s:[
+  'من «⚙️ إدارة العطاءات» دوس «📷 صور / فيديو» على كارت العطاء.',
+  'اختار الصور أو الفيديو من الموبايل (تقدر تختار أكتر من واحدة).',
+  'وافق على رسالة التأكيد — الصور دي هتظهر للناس في الصفحة العامة.',
+  'استنى لحد ما يظهر «✅ اترفعت».'],
+  tip:'ممنوع صور فيها دم أو وشوش أطفال. الفيديو لحد 25 ميجا. الصور بتتحفظ في فولدر «توثيق العطاءات» على درايف الجمعية.'},
+ {id:'print_list',t:'إزاي أطبع كشف',r:['admin'],s:[
+  'من الرئيسية دوس «🖨️ طباعة كشف».',
+  'اختار نموذج الكشف (تسليم بتوقيع / توزيع للمندوب / المستلمين فعلاً) واكتب العنوان.',
+  'من «مين يطلع في الكشف» اختار المصدر والمنطقة والتصنيف وحالة الملف وعدد الأفراد والترتيب.',
+  'لو محتاج قيمة لكل أسرة اختارها من «القيمة لكل أسرة».',
+  'اختار الأعمدة واتجاه الورقة، وبعدين «🖨️ طباعة / حفظ PDF».'],
+  tip:'على الموبايل: من شاشة الطباعة اختار «حفظ كـ PDF». الرقم اللي تحت بيقولك هيطلع كام أسرة قبل ما تطبع.'},
+ {id:'print_forms',t:'إزاي أطبع استمارة بحث',r:['admin','res'],s:[
+  'من «📋 الأبحاث الاجتماعية» هتلاقي «🖨️ طباعة استمارات البحث» فوق.',
+  'نموذج فاضي: «📄 نموذج فاضي».',
+  'للإدارة: اختار منطقة التوزيع وحالة الملف ودوس «🖨️ اطبع الاستمارات» — بتتطبع ببيانات كل أسرة.',
+  'لأسرة واحدة: من ملفها دوس «🖨️ استمارة البحث».'],
+  tip:''},
+ {id:'kafala_pay',t:'إزاي أسجل صرف الكفالات',r:['admin'],s:[
+  'من «⚙️ إدارة العطاءات» دوس «💰 صرف الكفالات».',
+  'اختار الشهر.',
+  'دوس «✅ اتصرفت بالكامل للشهر ده» لو كل الكفالات اتصرفت.'],
+  tip:'الكفالات بتظهر في الصفحة العامة بعدد الشهور والأسر، من غير مبالغ.'},
+ {id:'notif',t:'الإشعارات (الجرس 🔔)',r:['admin'],s:[
+  'الجرس فوق بيظهر للإدارة ومدير النظام بس، والرقم اللي عليه = الإشعارات اللي لسه ما قريتهاش.',
+  'دوس على الجرس عشان تشوف القائمة. الإشعار اللي محتاج تأكيد عليه زرار يوديك للشاشة على طول (زي «افتح الأبحاث»).',
+  'دوس «✔ مقروء» على الإشعار، أو «✔ علّم الكل مقروء».'],
+  tip:'المقروء بيتسجل لكل واحد لوحده — لو انت قريته، زميلك لسه هيشوفه جديد.'},
+ {id:'sys_user',t:'إزاي أضيف مستخدم جديد للمنصة',r:['sys'],s:[
+  'افتح «👥 المستخدمين» (تاب المستخدمين في الشيت).',
+  'زوّد صف جديد: الاسم، الدور، المنطقة، فعّال، وPIN.',
+  'ابعت الـ PIN لصاحبه في رسالة خاصة بس.'],
+  tip:'الدور بيحدد هو يشوف إيه: إدارة / باحث / توزيع. الإشعار «مستخدم جديد» بيوصل الإدارة من غير الرقم السري.'},
+ {id:'sys_video',t:'إزاي أضيف فيديو لـ «ساعدني»',r:['sys'],s:[
+  'ارفع الفيديو على يوتيوب «غير مدرج» (Unlisted)، أو على Google Drive وخلّي المشاركة «أي حد معاه اللينك».',
+  'افتح تاب «فيديوهات_المساعدة» في الشيت.',
+  'في صف الموضوع (عمود معرّف_الموضوع) الصق اللينك في عمود «الرابط»، وخلّي «مفعّل» = نعم.',
+  'عمود «الأدوار» فاضي = للكل، أو اكتب الأدوار مفصولة بفاصلة (مثلاً: إدارة، باحث).',
+  'افتح «ساعدني» تاني — زرار «▶ شاهد الفيديو» هيظهر لوحده.'],
+  tip:'ما تحطش فيديوهات على GitHub. الموضوع اللي مالوش فيديو بيظهر شرحه المكتوب بس.'}
+];
+var HV=null,HOPEN={};
+function hTags(){var t=['all'];if(ADMIN)t.push('admin');if(ROLE==='مدير النظام')t.push('sys');if(ROLE==='باحث')t.push('res');if(CANDIST||ROLE==='توزيع')t.push('dist');return t}
+function hMine(){var t=hTags();return HELP.filter(function(x){return x.r.some(function(r){return t.indexOf(r)>=0})})}
+function openHelp(id){show('s-help');window.scrollTo(0,0);if(id)HOPEN[id]=1;hDraw();
+  if(!HV){HV={};call('helpVideos',[PIN],function(d){HV={};(d.list||[]).forEach(function(v){HV[v.id]=v});hDraw()},function(){HV={}})}}
+function hNorm(s){return String(s||'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').toLowerCase()}
+function hDraw(){var q=hNorm($('hQ').value.trim()),L=hMine();
+  if(q)L=L.filter(function(x){return hNorm(x.t+' '+x.s.join(' ')+' '+(x.tip||'')).indexOf(q)>=0});
+  $('hList').innerHTML=L.map(function(x){var v=HV&&HV[x.id],op=HOPEN[x.id]||(q&&L.length<=3);
+    return '<div class="hp-t"><button onclick="HOPEN[\''+x.id+'\']=!HOPEN[\''+x.id+'\'];hDraw()"><span>'+esc(x.t)+'</span><small>'+(v?'🎬 ':'')+(op?'▲':'▼')+'</small></button>'+
+     (op?'<div class="hp-b">'+(v?'<button class="hp-v" onclick="hPlay(\''+x.id+'\')">▶ شاهد الفيديو</button>':'')+
+      '<ol>'+x.s.map(function(s){return '<li>'+esc(s)+'</li>'}).join('')+'</ol>'+(x.tip?'<div class="tip">💡 '+esc(x.tip)+'</div>':'')+'</div>':'')+'</div>'}).join('')||
+   '<div class="card msg">مفيش موضوع بالكلمة دي — جرّب كلمة تانية، أو ابعت سؤالك للمدير تحت.</div>'}
+/* يحوّل لينك يوتيوب أو جوجل درايف للينك تشغيل مدمج */
+function hEmbed(u){u=String(u||'').trim();var m;
+  if((m=u.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/)))return 'https://www.youtube-nocookie.com/embed/'+m[1]+'?rel=0&playsinline=1&autoplay=1';
+  if((m=u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:.*&)?id=)([\w-]{20,})/)))return 'https://drive.google.com/file/d/'+m[1]+'/preview';
+  return ''}
+function hPlay(id){var v=HV&&HV[id],src=v&&hEmbed(v.url);if(!src){alert('لينك الفيديو مش مظبوط — بلّغ مدير النظام');return}
+  var o=document.createElement('div');o.className='vp';o.id='vp';
+  o.innerHTML='<div class="bx"><button class="x" onclick="hClose()" aria-label="إغلاق">✕</button><iframe src="'+esc(src)+'" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe></div><div class="ttl">'+esc(v.title||'')+'</div>';
+  o.onclick=function(e){if(e.target===o)hClose()};document.body.appendChild(o);document.body.style.overflow='hidden'}
+function hClose(){var o=$('vp');if(o)o.remove();document.body.style.overflow=''}
+function hSend(){var m=$('hMsg').value.trim();if(m.length<3){$('hSent').innerHTML='<span class="err">اكتب رسالتك الأول</span>';return}
+  $('hSent').textContent='جاري الإرسال…';
+  call('contactAdmin',[PIN,m],function(){$('hMsg').value='';$('hSent').innerHTML='<span style="color:var(--g);font-weight:700">✅ رسالتك وصلت لمدير النظام</span>'},
+   function(e){$('hSent').innerHTML='<span class="err">'+esc(e)+'</span> — أو ابعت على إيميل الجمعية <a href="mailto:alansar.sharona@gmail.com">alansar.sharona@gmail.com</a>'})}
+
+/* ===== الإشعارات (للإدارة ومدير النظام) ===== */
+var NT=null,NTF='un',NTT=null;
+var NTYPE={
+ 'بحث جديد':{ic:'📋',go:'الأبحاث',fn:function(){RS=null;openRes()}},
+ 'تعديل ملف أسرة':{ic:'✏️',go:'افتح الملف',fn:function(id){openFam();if(id)fOpen(id)}},
+ 'عطاء جديد':{ic:'➕',go:'إدارة العطاءات',fn:function(){openAct()}},
+ 'عطاء اتقفل':{ic:'⏸',go:'إدارة العطاءات',fn:function(){openAct()}},
+ 'تم التوزيع':{ic:'✅',go:'إدارة العطاءات',fn:function(){openAct()}},
+ 'رفع صور':{ic:'📷',go:'إدارة العطاءات',fn:function(){openAct()}},
+ 'حذف ناعم':{ic:'🗑',go:'افتح',fn:function(id){if(/^\d{5}$/.test(String(id))){openFam();fOpen(id)}else{RS=null;openRes()}}},
+ 'مستخدم جديد':{ic:'👤',go:'المستخدمين',fn:function(){window.open(LINKS.users,'_blank')}},
+ 'شكوى أو اقتراح':{ic:'💬',go:'افتح الرسايل',fn:function(id){if(typeof openFb==='function')openFb(id);else alert('الرسالة كاملة موجودة في تاب «شكاوي_ومقترحات» في الشيت')}},
+ 'رسالة للمدير':{ic:'📨',go:'',fn:null}
+};
+function nStart(){var b=$('nBell');b.classList.toggle('hide',!ADMIN);if(!ADMIN)return;nLoad();clearInterval(NTT);NTT=setInterval(function(){if(PIN&&!document.hidden)nLoad()},120000)}
+function nLoad(cb){call('notifList',[PIN],function(d){NT=d;nBadge();cb&&cb()},function(){if(cb)$('nList').innerHTML='<div class="card msg">الإشعارات لسه مش متفعّلة على السيرفر — محتاجة نشر الإصدار الجديد.</div>'})}
+function nBadge(){var n=NT?NT.unread:0,i=$('nCnt');i.textContent=n>99?'99+':n;i.classList.toggle('hide',!n)}
+function openNotif(){show('s-notif');window.scrollTo(0,0);$('nList').innerHTML='<div class="spin">جاري التحميل…</div>';nLoad(nDraw)}
+function nSet(f){NTF=f;nDraw()}
+function nDraw(){if(!NT)return;var L=NT.list||[],un=L.filter(function(x){return !x.read}).length,ak=L.filter(function(x){return x.ack&&!x.read}).length;
+  $('nF').innerHTML=[['un','جديد',un],['ack','محتاج تأكيد',ak],['all','الكل',L.length]].map(function(x){return '<label class="chip"><input type="radio" name="nf"'+(NTF===x[0]?' checked':'')+' onchange="nSet(\''+x[0]+'\')"><span>'+x[1]+' <small>'+x[2]+'</small></span></label>'}).join('');
+  var S=L.filter(function(x){return NTF==='all'||(NTF==='un'?!x.read:x.ack&&!x.read)});
+  $('nList').innerHTML=S.map(function(x){var T=NTYPE[x.type]||{ic:'🔔'};
+    return '<div class="nt'+(x.read?'':' un')+'"><div class="ic">'+T.ic+'</div><div class="bd"><b>'+esc(x.type)+'</b>'+(x.ack?' <span class="st w">محتاج تأكيد</span>':'')+'<p>'+esc(x.desc)+'</p><small>'+esc(x.dt)+(x.by?' — '+esc(x.by):'')+'</small>'+
+     '<div class="ra" style="margin-top:6px">'+(T.fn&&T.go?'<button class="p" onclick="nGo(\''+esc(x.id)+'\')">'+esc(T.go)+' ←</button>':'')+(x.read?'':'<button onclick="nRead(\''+esc(x.id)+'\')">✔ مقروء</button>')+'</div></div></div>'}).join('')||'<div class="card msg">مفيش إشعارات هنا 👌</div>'}
+function nGo(id){var x=(NT.list||[]).filter(function(y){return String(y.id)===String(id)})[0];if(!x)return;var T=NTYPE[x.type];if(!x.read)nRead(id,1);if(T&&T.fn)T.fn(x.rec)}
+function nRead(id,quiet){var ids=id==='all'?(NT&&NT.list||[]).filter(function(x){return !x.read}).map(function(x){return x.id}):[id];if(!ids.length)return;
+  (NT.list||[]).forEach(function(x){if(ids.indexOf(x.id)>=0||ids.indexOf(String(x.id))>=0)x.read=true});NT.unread=Math.max(0,(NT.unread||0)-ids.length);if(id==='all')NT.unread=0;nBadge();if(!quiet)nDraw();
+  call('notifRead',[PIN,ids],function(){},function(){})}
 </script>
 </body>
 </html>
