@@ -161,3 +161,17 @@ function resResubmit(pin, id, note) {
   try { notify_('بحث رجع للمراجعة', 'بحث ' + (fn ? 'ملف ' + fn : 'حالة جديدة') + ' اتعدّل ورجع للاعتماد' + (note ? ': ' + note : ''), u.name, id, true); } catch (e) {}
   return { ok: true };
 }
+
+/** إعداد مرة واحدة لكل الأجزاء الجديدة (أ، ب، ج، د، هـ) — بيتشغّل من المحرر (Run) */
+function setupAllNew() {
+  var log = [];
+  function step(name, fn) { try { log.push(name + ': ' + (fn() || 'تم')); } catch (e) { log.push(name + ': ✖ ' + e.message); } }
+  step('الإشعارات وساعدني', setupHelpNotif);
+  step('الصفحة العامة', setupPublic);
+  step('المناطق الجديدة', setupRegionsLists);
+  step('أعمدة الأيتام والعلاج والمرفقات', addFamilyColumns);
+  step('إعدادات التقييم', setupScoring);
+  step('ملاحظات الأبحاث', function () { rvNotesSheet_(); return 'تم'; });
+  Logger.log(log.join('\n'));
+  return log.join('\n');
+}
