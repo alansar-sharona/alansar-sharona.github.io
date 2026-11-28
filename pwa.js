@@ -13,7 +13,15 @@
   var A = window.ANSAR_APP = {}, deferred = null;
   A.standalone = function () { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; };
   A.ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if ('serviceWorker' in navigator && C.sw) A.reg = navigator.serviceWorker.register(C.sw, { scope: C.scope }).catch(function () { return null; });
+  /* التحديث التلقائي: أي نسخة جديدة بتتنزل لوحدها، والصفحة بتعمل reload مرة واحدة من غير ما حد يمسح التطبيق */
+  if ('serviceWorker' in navigator && C.sw) {
+    var hadCtl = !!navigator.serviceWorker.controller, reloaded = false;
+    A.reg = navigator.serviceWorker.register(C.sw, { scope: C.scope, updateViaCache: 'none' }).catch(function () { return null; });
+    navigator.serviceWorker.addEventListener('controllerchange', function () { if (hadCtl && !reloaded) { reloaded = true; location.reload(); } });
+    var chk = function () { A.reg.then(function (r) { if (r) r.update().catch(function () {}); }); };
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') chk(); });
+    setInterval(chk, 30 * 60 * 1000);
+  }
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; A.refresh(); });
   window.addEventListener('appinstalled', function () { deferred = null; A.refresh(); });
   A.canInstall = function () { return !A.standalone() && (!!deferred || A.ios || /android/i.test(navigator.userAgent)); };

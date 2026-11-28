@@ -599,6 +599,6 @@ function drawAppBar(){var A=window.ANSAR_APP;if(!A)return;var b=[],st=A.pushStat
   document.getElementById('appBar').style.display=b.length||m?'flex':'none'}
 function appPush(){var m=document.getElementById('appMsg');m.textContent='جاري التفعيل…';ANSAR_APP.enablePush(function(e){drawAppBar();m.textContent=e||'✅ تمام — هتوصلك أخبار الجمعية على الموبايل ده.'},function(t){m.textContent=t})}
 </script>
-<script src="/pwa.js?v=5" defer onload="drawAppBar()"></script>
+<script src="/pwa.js?v=6" defer onload="drawAppBar()"></script>
 </body>
 </html>

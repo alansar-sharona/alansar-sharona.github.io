@@ -1,5 +1,5 @@
 /* تطبيق «منصة الأنصار» للفريق — شغال من غير نت + إشعارات */
-var PREFIX = 'ansar-app-', CACHE = PREFIX + 'v1', HOME = '/app/', ICON = '/app/icon-192.png';
+var PREFIX = 'ansar-app-', CACHE = PREFIX + 'v2', HOME = '/app/', ICON = '/app/icon-192.png';
 var SHELL = ['/app/', '/app/index.html', '/app/manifest.webmanifest', '/app/icon-192.png', '/app/icon-512.png'];
 /* الإشعارات: بتيجي من Firebase Cloud Messaging — بنعرضها هنا من غير مكتبة firebase */
 self.addEventListener('push', function (e) {
@@ -20,7 +20,7 @@ self.addEventListener('notificationclick', function (e) {
     return clients.openWindow(url);
   }));
 });
-/* الصفحات: من النت الأول، ولو مفيش نت من النسخة المحفوظة */
+/* الصفحات: من النت الأول (آخر نسخة دايمًا)، ولو مفيش نت من النسخة المحفوظة */
 self.addEventListener('install', function (e) { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); })); });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf(PREFIX) === 0 && k !== CACHE; }).map(function (k) { return caches.delete(k); })); }).then(function () { return self.clients.claim(); }));
@@ -28,8 +28,10 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   var r = e.request, u = new URL(r.url);
   if (r.method !== 'GET' || u.origin !== location.origin) return;
-  e.respondWith(fetch(r).then(function (res) {
-    if (res && res.ok) { var cp = res.clone(); caches.open(CACHE).then(function (c) { c.put(r, cp); }); }
+  /* الصفحات والسكريبتات: دايمًا بنسأل السيرفر عن آخر نسخة (من غير كاش المتصفح) */
+  var fresh = r.mode === 'navigate' || /\.(js|html|webmanifest)$/.test(u.pathname) || u.pathname.slice(-1) === '/';
+  e.respondWith((fresh ? fetch(r.url, { cache: 'no-cache', credentials: 'same-origin', redirect: r.mode === 'navigate' ? 'manual' : 'follow' }) : fetch(r)).then(function (res) {
+    if (res && res.ok && res.type === 'basic') { var cp = res.clone(); caches.open(CACHE).then(function (c) { c.put(r, cp); }); }
     return res;
   }).catch(function () { return caches.match(r, { ignoreSearch: true }).then(function (m) { return m || caches.match(SHELL[0]); }); }));
 });
