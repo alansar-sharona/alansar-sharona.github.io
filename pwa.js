@@ -46,26 +46,32 @@
     return fetch(C.api, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
       .then(function (r) { return r.json(); }).then(function (j) { if (!j.ok) throw new Error(j.error || 'حصل خطأ'); return j.data; });
   }
-  A.enablePush = function (done) {
-    done = done || function () {};
+  /* كل خطوة ليها مهلة ورسالة واضحة، عشان لو حاجة وقفت نعرف هي فين */
+  function step(p, sec, name) {
+    return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error('الخطوة «' + name + '» أخدت وقت أكتر من اللازم')); }, sec * 1000); })]);
+  }
+  A.enablePush = function (done, prog) {
+    done = done || function () {}; prog = prog || function () {};
     var st = A.pushState();
     if (st === 'na') return done(A.pushConfigured() ? 'المتصفح ده مش بيدعم الإشعارات' : 'الإشعارات لسه بتتجهز');
     if (st === 'ios-install') return done('على الآيفون: ضيف التطبيق للشاشة الرئيسية الأول، وافتحه منها، وبعدين فعّل الإشعارات');
-    Notification.requestPermission().then(function (p) {
-      if (p !== 'granted') return done('الإشعارات مش مسموحة — تقدر تسمح بيها من إعدادات المتصفح للموقع');
-      loadFb(function (err) {
-        if (err) return done(err);
-        try { if (!firebase.apps.length) firebase.initializeApp(FCM); } catch (e) {}
-        navigator.serviceWorker.ready
-          .then(function (reg) { return firebase.messaging().getToken({ vapidKey: FCM.vapidKey, serviceWorkerRegistration: reg }); })
-          .then(function (tok) {
-            if (!tok) throw new Error('مفيش رقم جهاز');
-            return api('pushRegister', [C.kind === 'team' && C.pin ? C.pin() : '', tok, C.kind, navigator.userAgent.slice(0, 120)])
-              .then(function () { localStorage.setItem('ansar_push_' + C.kind, tok); A.refresh(); done(null); });
-          })
-          .catch(function (e) { done('حصلت مشكلة في تفعيل الإشعارات: ' + ((e && e.message) || e)); });
-      });
-    });
+    prog('١/٤ بيطلب إذن الإشعارات…');
+    step(Promise.resolve(Notification.requestPermission()), 60, 'إذن الإشعارات').then(function (p) {
+      if (p !== 'granted') throw new Error('الإشعارات مش مسموحة — اسمح بيها من إعدادات المتصفح للموقع');
+      prog('٢/٤ بيحمّل خدمة الإشعارات…');
+      return step(new Promise(function (ok, no) { loadFb(function (err) { err ? no(new Error(err)) : ok(); }); }), 30, 'تحميل خدمة الإشعارات');
+    }).then(function () {
+      try { if (!firebase.apps.length) firebase.initializeApp(FCM); } catch (e) {}
+      prog('٣/٤ بيجهز الموبايل للإشعارات…');
+      var reg = navigator.serviceWorker.getRegistration(C.scope).then(function (r) { return r || navigator.serviceWorker.register(C.sw, { scope: C.scope }); })
+        .then(function (r) { return r.active ? r : new Promise(function (ok) { var w = r.installing || r.waiting; if (!w) return ok(r); w.addEventListener('statechange', function () { if (w.state === 'activated') ok(r); }); }); });
+      return step(reg, 30, 'تجهيز التطبيق').then(function (r) { return step(firebase.messaging().getToken({ vapidKey: FCM.vapidKey, serviceWorkerRegistration: r }), 40, 'رقم الجهاز من جوجل'); });
+    }).then(function (tok) {
+      if (!tok) throw new Error('جوجل ما ادّاش رقم للجهاز');
+      prog('٤/٤ بيسجّل الموبايل…');
+      return step(api('pushRegister', [C.kind === 'team' && C.pin ? C.pin() : '', tok, C.kind, navigator.userAgent.slice(0, 120)]), 40, 'التسجيل في السيرفر')
+        .then(function () { localStorage.setItem('ansar_push_' + C.kind, tok); A.refresh(); done(null); });
+    }).catch(function (e) { done('ما اتفعّلتش: ' + ((e && e.message) || e)); });
   };
   A.disablePush = function (done) {
     var tok = localStorage.getItem('ansar_push_' + C.kind);

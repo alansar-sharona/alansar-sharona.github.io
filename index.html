@@ -597,8 +597,8 @@ function drawAppBar(){var A=window.ANSAR_APP;if(!A)return;var b=[],st=A.pushStat
   var m=st==='ios-install'?'🔔 عشان توصلك الإشعارات على الآيفون: ضيف التطبيق للشاشة الرئيسية الأول وافتحه منها.':st==='on'?'✅ الإشعارات شغالة على الموبايل ده.':st==='denied'?'الإشعارات مقفولة من إعدادات المتصفح للموقع ده.':'';
   document.getElementById('appBtns').innerHTML=b.join('');document.getElementById('appMsg').textContent=m;
   document.getElementById('appBar').style.display=b.length||m?'flex':'none'}
-function appPush(){document.getElementById('appMsg').textContent='جاري التفعيل…';ANSAR_APP.enablePush(function(e){document.getElementById('appMsg').textContent=e||'✅ تمام — هتوصلك أخبار الجمعية على الموبايل ده.';drawAppBar();if(e)document.getElementById('appMsg').textContent=e})}
+function appPush(){var m=document.getElementById('appMsg');m.textContent='جاري التفعيل…';ANSAR_APP.enablePush(function(e){drawAppBar();m.textContent=e||'✅ تمام — هتوصلك أخبار الجمعية على الموبايل ده.'},function(t){m.textContent=t})}
 </script>
-<script src="/pwa.js?v=3" defer onload="drawAppBar()"></script>
+<script src="/pwa.js?v=4" defer onload="drawAppBar()"></script>
 </body>
 </html>

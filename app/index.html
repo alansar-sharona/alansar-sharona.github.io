@@ -1076,7 +1076,7 @@ function appDraw(){var A=window.ANSAR_APP,b=$('appBox');if(!A||!b||!PIN)return;v
   var m=st==='ios-install'?'🔔 على الآيفون: ثبّت المنصة على الشاشة الرئيسية الأول وافتحها منها عشان الإشعارات توصلك.':st==='denied'?'الإشعارات مقفولة من إعدادات المتصفح — افتحها من إعدادات الموقع.':'';
   b.innerHTML=h.length||m?'<div class="ra">'+h.join('')+'</div>'+(m?'<div class="msg" style="text-align:right">'+m+'</div>':'')+'<div id="appMsg"></div>':'';
   b.style.display=b.innerHTML?'':'none'}
-function appPushOn(){$('appMsg').innerHTML='<div class="msg">جاري التفعيل…</div>';ANSAR_APP.enablePush(function(e){appDraw();var m=$('appMsg');if(m)m.innerHTML=e?'<div class="err">'+esc(e)+'</div>':'<div class="msg" style="color:var(--g);font-weight:700">✅ الإشعارات شغالة على الموبايل ده</div>'})}
+function appPushOn(){$('appMsg').innerHTML='<div class="msg">جاري التفعيل…</div>';ANSAR_APP.enablePush(function(e){appDraw();var m=$('appMsg');if(m)m.innerHTML=e?'<div class="err">'+esc(e)+'</div>':'<div class="msg" style="color:var(--g);font-weight:700">✅ الإشعارات شغالة على الموبايل ده</div>'},function(t){var m=$('appMsg');if(m)m.innerHTML='<div class="msg">'+esc(t)+'</div>'})}
 
 /* صندوق الأبحاث اللي مستنية النت (IndexedDB عشان الصور) */
 var OB={db:null};
@@ -1444,6 +1444,6 @@ HELP.push({id:'score',t:'التقييم الإلكتروني (الكود الم�
   'القرار النهائي للإدارة دايماً — كود «د» معناه مرشح للاستبعاد بس، مش استبعاد.'],
   tip:'الأوزان والحدود في تاب «إعدادات_التقييم» في الشيت، وبتتعدل من غير كود. التفعيل من نفس التاب (مفعّل_للباحثين / يظهر_في_المراجعة).'});
 </script>
-<script src="/pwa.js?v=3" defer onload="appDraw()"></script>
+<script src="/pwa.js?v=4" defer onload="appDraw()"></script>
 </body>
 </html>
