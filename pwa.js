@@ -6,8 +6,9 @@
   var C = window.ANSAR_PWA || {};
   /* إعدادات Firebase (مشروع الجمعية) — مش سرية، دي بتتحط في أي صفحة ويب */
   var FCM = {
-    apiKey: '', authDomain: '', projectId: '', storageBucket: '', messagingSenderId: '', appId: '',
-    vapidKey: ''
+    apiKey: 'AIzaSyCxRlcCUIxNRsnCvORdywumeno_W3m_ruw', authDomain: 'alansar-sharona.firebaseapp.com', projectId: 'alansar-sharona',
+    storageBucket: 'alansar-sharona.firebasestorage.app', messagingSenderId: '1090168626562', appId: '1:1090168626562:web:ee86fb484198adc3ad439b',
+    vapidKey: 'BFB3Tq7Sy19BlljNlutmdiq3RI-hXwhXsCe28ugPTnfJ6s2XtbIWcFdPdLTtu9aZeY2vGOz2voMpboRwHtJYsRM'
   };
   var A = window.ANSAR_APP = {}, deferred = null;
   A.standalone = function () { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; };
