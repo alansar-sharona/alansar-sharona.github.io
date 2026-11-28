@@ -148,6 +148,7 @@ input:focus{outline:none;border-color:var(--g)}
 
   <section id="s-home" class="hide">
     <div class="card msg" id="obBox" style="display:none;text-align:right"></div>
+    <div class="card msg" id="famBox" style="display:none;text-align:right;font-size:14px"></div>
     <div class="card stats" id="stats"><div class="spin" style="grid-column:1/-1">جاري التحميل…</div></div>
 
     <div class="tiles" id="tiles"></div>
@@ -368,7 +369,7 @@ function render(h){
   t+=tile('../','🌐','الصفحة العامة','صفحة الجمعية للناس — الأنشطة وآخر التوزيعات');
   t+=tile('javascript:openHelp()','🙋','ساعدني','شرح كل مهمة خطوة بخطوة — وفيديو لو موجود');
   $('tiles').innerHTML=t;HOME_OK=1;
-  appDraw();obBadge();obFlush(false);if(window.ANSAR_APP)ANSAR_APP.syncTeam();if(['مدير النظام','إدارة','باحث'].indexOf(h.role)>=0)setTimeout(famSync,4000);
+  appDraw();obBadge();obFlush(false);if(window.ANSAR_APP)ANSAR_APP.syncTeam();if(['مدير النظام','إدارة','باحث'].indexOf(h.role)>=0)famSync();
   var o=h.open||[];
   $('actsCard').classList.toggle('hide',!h.canDistribute);
   $('acts').innerHTML=o.length?o.map(function(a){return '<div><span>'+esc(a.name)+'</span><span><em>'+a.today+'</em> النهارده · '+a.total+' إجمالي</span></div>'}).join(''):'<div><span style="color:var(--mut)">مفيش عطاء مفتوح — افتحه من «إدارة العطاءات»</span></div>';
@@ -422,7 +423,8 @@ function rfStart(){var q=$('rfQ').value.trim();if(!q){$('rfMsg').innerHTML='<div
   call('resPrefill',[PIN,q],function(d){rfBegin(d,q);rfNext()},function(m){
     if(!obIsNet(m)){$('rfMsg').innerHTML='<div class="err">'+esc(m)+'</div>';return}
     famLocal(q,function(d,at){if(d){RF.offline=1;rfBegin(d,q);$('rfBody').insertAdjacentHTML('afterbegin','<div class="card" style="text-align:right;border:2px solid var(--o)"><b style="color:var(--o)">📴 من غير نت</b><div class="msg" style="text-align:right">بيانات الأسرة من النسخة المحفوظة على الموبايل'+(at?' (اتحدّثت '+esc(at)+')':'')+'. البحث هيتحفظ ويتبعت أول ما النت يرجع.</div></div>');return}
-      $('rfMsg').innerHTML='<div class="err">مفيش نت، والرقم ده مش لاقيه في بيانات الأسر المحفوظة على الموبايل.</div><button class="btn" onclick="rfOffline()">📴 كمّل كحالة جديدة من غير نت</button><div class="msg" style="text-align:right">لو دي أسرة مسجلة، اتأكد من رقم الملف أو الرقم القومي. بيانات الأسر بتتحفظ على الموبايل لوحدها كل ما تفتح المنصة والنت شغال.</div>'})})}
+      if(arguments[2]){$('rfMsg').innerHTML='<div class="err">مفيش نت، وبيانات الأسر لسه ما اتحفظتش على الموبايل ده.</div><div class="msg" style="text-align:right">افتح المنصة مرة والنت شغال، واستنى لحد ما يظهر في الصفحة الرئيسية «📥 بيانات الأسر محفوظة على الموبايل».</div><button class="btn" onclick="rfOffline()">📴 كمّل كحالة جديدة من غير نت</button>';return}
+      $('rfMsg').innerHTML='<div class="err">مفيش نت، والرقم ده مش لاقيه في بيانات الأسر المحفوظة على الموبايل'+(at?' (آخر تحديث '+esc(at)+')':'')+'.</div><button class="btn" onclick="rfOffline()">📴 كمّل كحالة جديدة من غير نت</button><div class="msg" style="text-align:right">لو دي أسرة مسجلة، اتأكد من رقم الملف أو الرقم القومي. بيانات الأسر بتتحفظ على الموبايل لوحدها كل ما تفتح المنصة والنت شغال.</div>'})})}
 function rfBegin(d,q){RF.ctx=d.ctx;RF.V.qr=q;RF.uuid=rfUid();
     var dr=null;try{dr=JSON.parse(load('ansar_rf_'+(d.ctx.fn||q))||'null')}catch(e){}
     if(dr){RF.V=dr.V;RF.R=dr.R||{};RF.restored=1;if(dr.u)RF.uuid=dr.u}
@@ -1094,10 +1096,14 @@ function obAll(cb){obDb(function(db){if(!db)return cb([]);var q=db.transaction('
 function obDel(id){obDb(function(db){if(db)db.transaction('rf','readwrite').objectStore('rf').delete(id)})}
 /* بيانات الأسر على الموبايل — عشان بحث التحديث يتفتح من غير نت */
 function famLocal(q,cb){q=String(q||'').replace(/[٠-٩]/g,function(c){return '٠١٢٣٤٥٦٧٨٩'.indexOf(c)}).replace(/\s/g,'');if(/^ANS-/i.test(q))q=q.split('-').pop();var d=q.replace(/\D/g,'');
-  obDb(function(db){if(!db)return cb(null);var g=db.transaction('fam').objectStore('fam').get('all');g.onsuccess=function(){var A=g.result;if(!A||!d)return cb(null);
+  obDb(function(db){if(!db)return cb(null);var g=db.transaction('fam').objectStore('fam').get('all');g.onsuccess=function(){var A=g.result;if(!A)return cb(null,'',true);if(!d)return cb(null,A.at||'');
     var x=(A.list||[]).filter(function(f){return d.length===14?f.nid===d:f.fn===d})[0];cb(x?{found:true,ctx:x.ctx,pf:x.pf}:null,A.at||'')};g.onerror=function(){cb(null)}})}
-function famSync(force){if(!PIN||!navigator.onLine)return;var last=Number(load('ansar_famsync')||0);if(!force&&Date.now()-last<6*3600*1000)return;
-  call('resPrefillAll',[PIN],function(L){obDb(function(db){if(!db)return;var t=db.transaction('fam','readwrite');t.objectStore('fam').put({k:'all',at:new Date().toLocaleString('ar-EG',{day:'numeric',month:'numeric',hour:'numeric',minute:'2-digit'}),list:L});t.oncomplete=function(){store('ansar_famsync',String(Date.now()))}})},function(){})}
+function famBox(t){var b=$('famBox');if(!b)return;b.style.display=t?'':'none';b.innerHTML=t||''}
+function famShow(){famLocal('',function(d,at,none){famBox(none?'📥 بيانات الأسر لسه ما اتحفظتش على الموبايل… <button onclick="famSync(true)">حمّلها دلوقتي</button>':'📥 بيانات الأسر محفوظة على الموبايل للبحث من غير نت — آخر تحديث '+esc(at)+' <button onclick="famSync(true)">🔄 حدّث</button>')})}
+function famSync(force){if(!PIN||!navigator.onLine)return famShow();var last=Number(load('ansar_famsync')||0);
+  famLocal('',function(d,at,none){if(!force&&!none&&Date.now()-last<6*3600*1000)return famShow();
+    famBox('📥 جاري حفظ بيانات الأسر على الموبايل للبحث من غير نت…');
+    call('resPrefillAll',[PIN],function(L){obDb(function(db){if(!db)return famBox('');var t=db.transaction('fam','readwrite');t.objectStore('fam').put({k:'all',at:new Date().toLocaleString('ar-EG',{day:'numeric',month:'numeric',hour:'numeric',minute:'2-digit'}),list:L});t.oncomplete=function(){store('ansar_famsync',String(Date.now()));famShow()}})},function(){famShow()})})}
 function obIsNet(m){return /مفيش اتصال/.test(String(m))}
 function obBadge(){obAll(function(L){var b=$('obBox');if(!b)return;b.style.display=L.length?'':'none';
   b.innerHTML=L.length?'📤 <b>'+L.length+'</b> بحث محفوظ على الموبايل ومستني النت — '+(navigator.onLine?'<button onclick="obFlush(true)">ابعتهم دلوقتي</button>':'هيتبعتوا لوحدهم أول ما النت يرجع'):''})}
