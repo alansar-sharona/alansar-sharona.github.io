@@ -197,6 +197,19 @@ footer a{color:var(--gold2)}
 .fbo{font-weight:700}.fbo.ok{color:var(--g2)}.fbo.no{color:#B3261E}
 @media(max-width:820px){.fb2{grid-template-columns:1fr}.don{padding:18px}.dn b{font-size:24px}}
 </style>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="جمعية الأنصار">
+<style>
+.appbar{display:none;background:var(--g3);border:1px solid #CFE3D6;border-radius:16px;padding:12px 14px;margin:14px 0 0;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.appbar b{color:var(--g);font-size:16px}.appbar small{display:block;color:var(--mut);font-size:13px}
+.appbar .ab{display:flex;gap:8px;flex-wrap:wrap}
+.appbar button{border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:800;font-size:15px;cursor:pointer;background:var(--g);color:#fff}
+.appbar button.o{background:#fff;color:var(--g);border:2px solid var(--g)}
+.appbar .am{width:100%;font-size:13px;color:var(--mut)}
+</style>
 </head>
 <body>
 <nav><div class="wrap">
@@ -223,6 +236,7 @@ footer a{color:var(--gold2)}
     <div class="st"><b>+450</b><span>أسرة في قاعدة البيانات</span></div>
     <div class="st"><b>+50</b><span>كفالة شهرية</span></div>
   </div>
+  <div class="appbar" id="appBar"><div><b>📲 تطبيق جمعية الأنصار</b><small>خليه على موبايلك — وتوصلك أخبار الجمعية والحملات أول بأول</small></div><div class="ab" id="appBtns"></div><div class="am" id="appMsg"></div></div>
 </div>
 
 <section id="programs"><div class="wrap">
@@ -574,5 +588,17 @@ function fbSend(e){e.preventDefault();var out=document.getElementById('fbOut'),b
   var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){L.forEach(function(a){var on=a.getAttribute('href')==='#'+en.target.id;a.classList.toggle('on',on);if(on&&a.scrollIntoView&&window.innerWidth<820)a.parentNode.scrollTo({left:a.offsetLeft-a.parentNode.clientWidth/2+a.clientWidth/2,behavior:'smooth'})})}})},{rootMargin:'-40% 0px -55% 0px'});
   L.forEach(function(a){var t=document.querySelector(a.getAttribute('href'));if(t)io.observe(t)})})();
 </script>
+<script>
+window.ANSAR_PWA={sw:'/sw.js',scope:'/',kind:'donor',api:API,onChange:function(){drawAppBar()}};
+function drawAppBar(){var A=window.ANSAR_APP;if(!A)return;var b=[],st=A.pushState();
+  if(A.canInstall())b.push('<button onclick="ANSAR_APP.install()">📲 ضيف التطبيق على موبايلك</button>');
+  if(st==='off')b.push('<button class="o" onclick="appPush()">🔔 فعّل إشعارات الجمعية</button>');
+  else if(st==='on')b.push('<button class="o" onclick="ANSAR_APP.disablePush()">🔕 إيقاف الإشعارات</button>');
+  var m=st==='ios-install'?'🔔 عشان توصلك الإشعارات على الآيفون: ضيف التطبيق للشاشة الرئيسية الأول وافتحه منها.':st==='on'?'✅ الإشعارات شغالة على الموبايل ده.':st==='denied'?'الإشعارات مقفولة من إعدادات المتصفح للموقع ده.':'';
+  document.getElementById('appBtns').innerHTML=b.join('');document.getElementById('appMsg').textContent=m;
+  document.getElementById('appBar').style.display=b.length||m?'flex':'none'}
+function appPush(){document.getElementById('appMsg').textContent='جاري التفعيل…';ANSAR_APP.enablePush(function(e){document.getElementById('appMsg').textContent=e||'✅ تمام — هتوصلك أخبار الجمعية على الموبايل ده.';drawAppBar();if(e)document.getElementById('appMsg').textContent=e})}
+</script>
+<script src="/pwa.js" defer onload="drawAppBar()"></script>
 </body>
 </html>

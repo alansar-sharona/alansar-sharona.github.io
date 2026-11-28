@@ -2,7 +2,7 @@
  * (هـ) مراجعة الأبحاث — عرض البحث كامل، تعديله، إرجاعه للباحث، وملخص التغييرات عن ملف الأسرة
  * محتاج: الرمز.gs (kobo_ و user_ و table_ و lab_ و normAddr_) + ملفات (أ) و(ج) و(د)
  *
- * دوال doPost: resGet, resEdit, resReturn, resResubmit
+ * دوال doPost: resGet, resEdit, resReturn, resResubmit, resPhoto, resEditFull
  * حالات البحث في كوبو:
  *   من غير حالة  → مستني اعتماد
  *   on_hold      → مرجّع للباحث للتعديل (الملاحظة في تاب ملاحظات_الأبحاث)
@@ -112,7 +112,7 @@ function resGet(pin, id) {
   Object.keys(sub).forEach(function (k) { if (k.charAt(0) !== '_' && !/^(formhub|meta|__version__|start|end|deviceid)/.test(k)) clean[k] = sub[k]; });
   return {
     id: Number(id), sub: clean, vs: vs, isNew: ri < 0, fam: fam, changes: changes, members: mem, notes: notes,
-    att: (sub._attachments || []).length, by: String(sub['g_file/researcher'] || sub._submitted_by || ''),
+    att: (sub._attachments || []).length, iid: String(sub['meta/instanceID'] || ''), by: String(sub['g_file/researcher'] || sub._submitted_by || ''),
     sc: scSafe_(sub), canEdit: vs !== 'validation_status_approved' && (rvAdmin_(u) || vs === RV.HOLD), admin: rvAdmin_(u)
   };
 }
@@ -148,6 +148,7 @@ function resReturn(pin, id, note) {
   var fn = String(sub['g_file/fn'] || ''), by = String(sub['g_file/researcher'] || sub._submitted_by || '');
   rvNote_(id, fn, 'إرجاع للتعديل', note, u.name);
   try { notify_('بحث مرجّع للتعديل', 'بحث ' + (fn ? 'ملف ' + fn : 'حالة جديدة') + ' اترجع للباحث ' + by + ': ' + note, u.name, id, false); } catch (e) {}
+  if (typeof pushSafe_ === 'function') pushSafe_('↩ بحث مرجّع ليك للتعديل', (fn ? 'ملف ' + fn + ' — ' : '') + note, 'https://alansar-sharona.github.io/app/', 'name:' + by);
   return { ok: true };
 }
 
@@ -162,6 +163,64 @@ function resResubmit(pin, id, note) {
   return { ok: true };
 }
 
+/* ---------------- صور البحث جوه المنصة ---------------- */
+function rvAttach_(sub, name) {
+  name = String(name || '').split('/').pop();
+  var A = sub._attachments || [];
+  for (var i = 0; i < A.length; i++) {
+    var fnm = String(A[i].media_file_basename || A[i].filename || '').split('/').pop();
+    if (fnm === name) return A[i];
+  }
+  return null;
+}
+function rvFetchAtt_(a, size) {
+  var tok = PropertiesService.getScriptProperties().getProperty('KOBO_TOKEN');
+  var url = (size && a['download_' + size + '_url']) || a.download_url;
+  var r = UrlFetchApp.fetch(url, { headers: { Authorization: 'Token ' + tok }, muteHttpExceptions: true, followRedirects: true });
+  if (r.getResponseCode() >= 300) throw new Error('مش قادر أجيب الصورة من كوبو (' + r.getResponseCode() + ')');
+  return r.getBlob();
+}
+/** صورة من صور البحث (للإدارة والباحثين) — size: small | medium | large | '' للأصلية */
+function resPhoto(pin, id, name, size) {
+  resUser_(pin);
+  var sub = rvSub_(id), a = rvAttach_(sub, name);
+  if (!a) throw new Error('الصورة مش موجودة في البحث');
+  var b = rvFetchAtt_(a, size === undefined ? 'medium' : size);
+  return { name: String(name), mime: b.getContentType() || a.mimetype || 'image/jpeg', b64: Utilities.base64Encode(b.getBytes()) };
+}
+
+/* ---------------- تعديل البحث كامل بنفس الاستمارة ----------------
+ * بيبعت البحث لكوبو كتعديل على نفس البحث (deprecatedID) — نفس رقم البحث، وبيحتفظ بالصور القديمة اللي ما اتغيرتش */
+function resEditFull(pin, id, tree, files, meta) {
+  var u = resUser_(pin), sub = rvSub_(id), vs = rvStatus_(sub), admin = rvAdmin_(u);
+  if (vs === 'validation_status_approved') throw new Error('البحث ده معتمد ومتكتب في ملف الأسرة — عدّل من ملف الأسرة نفسه');
+  if (!admin && vs !== RV.HOLD) throw new Error('الباحث يقدر يعدّل البحث بس لما الإدارة ترجّعه له');
+  var oldIid = String(sub['meta/instanceID'] || '');
+  if (!oldIid) throw new Error('البحث ده مالوش رقم في كوبو — مينفعش يتعدّل من المنصة');
+  var tok = PropertiesService.getScriptProperties().getProperty('KOBO_TOKEN');
+  var a = kobo_('/api/v2/assets/' + KOBO_ASSET + '/?format=json'), now = now_(), iso = Utilities.formatDate(now, TZ, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+  var uuid = (meta && /^[0-9a-f-]{36}$/.test(meta.uuid || '')) ? meta.uuid : Utilities.getUuid();
+  var head = { start: sub.start || iso, end: iso, today: fmt_(now, 'yyyy-MM-dd'), deviceid: 'platform:' + u.name, username: u.name };
+  var xml = '<?xml version="1.0" ?><' + KOBO_ASSET + ' id="' + KOBO_ASSET + '">' + toXml_(head) + toXml_(tree || {}) +
+            '<__version__>' + a.deployed_version_id + '</__version__><meta><instanceID>uuid:' + uuid + '</instanceID><deprecatedID>' + xmlEsc_(oldIid) + '</deprecatedID></meta></' + KOBO_ASSET + '>';
+  var payload = { xml_submission_file: Utilities.newBlob(xml, 'text/xml', 'submission.xml') }, sent = {};
+  (files || []).forEach(function (f) { if (f && f.name && f.b64) { payload[f.name] = Utilities.newBlob(Utilities.base64Decode(f.b64), f.mime || 'image/jpeg', f.name); sent[f.name] = 1; } });
+  // الصور القديمة اللي لسه متسجلة في البحث بتتبعت تاني عشان ما تضيعش
+  var keep = 0;
+  xml.replace(/>([^<>]+\.(?:jpe?g|png|webp|heic))</gi, function (m, nm) {
+    if (sent[nm]) return m;
+    var at = rvAttach_(sub, nm);
+    if (at) { try { var b = rvFetchAtt_(at, ''); payload[nm] = b.setName(nm); sent[nm] = 1; keep++; } catch (e) {} }
+    return m;
+  });
+  var r = UrlFetchApp.fetch('https://kc.kobotoolbox.org/submission', { method: 'post', muteHttpExceptions: true, headers: { Authorization: 'Token ' + tok, 'X-OpenRosa-Version': '1.0' }, payload: payload });
+  if (r.getResponseCode() >= 300) throw new Error('كوبو رفض التعديل (' + r.getResponseCode() + ') — حاول تاني');
+  var lg = ss_().getSheetByName('سجل_التعديلات');
+  if (!lg) { lg = ss_().insertSheet('سجل_التعديلات'); lg.appendRow(['الوقت', 'المستخدم', 'رقم_الملف', 'الحقل', 'القيمة_القديمة', 'القيمة_الجديدة']); lg.setRightToLeft(true); }
+  lg.appendRow([now, u.name + ' (تعديل بحث K' + id + ')', "'" + String(sub['g_file/fn'] || ''), 'تعديل البحث كامل من المنصة', "'" + oldIid, "'uuid:" + uuid]);
+  return { ok: true, id: Number(id), kept: keep, by: u.name };
+}
+
 /** إعداد مرة واحدة لكل الأجزاء الجديدة (أ، ب، ج، د، هـ) — بيتشغّل من المحرر (Run) */
 function setupAllNew() {
   var log = [];
@@ -172,6 +231,7 @@ function setupAllNew() {
   step('أعمدة الأيتام والعلاج والمرفقات', addFamilyColumns);
   step('إعدادات التقييم', setupScoring);
   step('ملاحظات الأبحاث', function () { rvNotesSheet_(); return 'تم'; });
+  if (typeof setupPush === 'function') step('إشعارات الموبايل', setupPush);
   Logger.log(log.join('\n'));
   return log.join('\n');
 }

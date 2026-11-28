@@ -1,0 +1,16 @@
+{
+  "name": "جمعية الأنصار بشارونة",
+  "short_name": "جمعية الأنصار",
+  "description": "أنشطة جمعية الأنصار الخيرية بشارونة، وأرقام التبرع، وآخر التوزيعات",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/?src=app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#14713A",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

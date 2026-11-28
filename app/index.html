@@ -6,6 +6,11 @@
 <title>منصة الأنصار</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#14713A">
+<link rel="manifest" href="/app/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/app/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="منصة الأنصار">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -142,9 +147,11 @@ input:focus{outline:none;border-color:var(--g)}
   </section>
 
   <section id="s-home" class="hide">
+    <div class="card msg" id="obBox" style="display:none;text-align:right"></div>
     <div class="card stats" id="stats"><div class="spin" style="grid-column:1/-1">جاري التحميل…</div></div>
 
     <div class="tiles" id="tiles"></div>
+    <div class="card" id="appBox" style="display:none;margin-top:14px"></div>
 
     <div class="card" id="actsCard" style="margin-top:14px">
       <h2>العطاءات المفتوحة دلوقتي</h2>
@@ -275,6 +282,19 @@ input:focus{outline:none;border-color:var(--g)}
       <button class="btn" onclick="hSend()">📨 ابعت للمدير</button><div id="hSent" class="msg"></div>
     </div>
   </section>
+  <section id="s-push" class="hide">
+    <div class="card"><h2>📣 إرسال إشعار على الموبايل</h2>
+      <div class="msg" id="puC" style="text-align:right"></div>
+      <div class="f"><label class="l">هيوصل لمين؟</label><select id="puA" class="tx">
+        <option value="donors">المتبرعين (تطبيق الجمعية)</option><option value="team">الفريق كله</option>
+        <option value="role:باحث">الباحثين بس</option><option value="role:توزيع">فريق التوزيع بس</option><option value="admins">الإدارة بس</option><option value="all">الكل — متبرعين وفريق</option></select></div>
+      <div class="f"><label class="l">العنوان</label><input id="puT" class="tx" maxlength="60" placeholder="مثلاً: بدأنا وجبة الخير 1448"></div>
+      <div class="f"><label class="l">الرسالة</label><textarea id="puB" class="tx" rows="3" maxlength="300" placeholder="نص قصير يظهر في الإشعار"></textarea></div>
+      <div class="f"><label class="l">لينك يفتح لما يدوسوا (اختياري)</label><input id="puL" class="tx" dir="ltr" placeholder="https://alansar-sharona.github.io/#donate"></div>
+      <div class="ra"><button class="p" onclick="puSend()">📣 ابعت الإشعار</button><button onclick="show('s-home')">→ رجوع</button></div>
+      <div id="puMsg"></div></div>
+    <div class="card"><h2>آخر الإشعارات اللي اتبعتت</h2><div id="puH"></div></div>
+  </section>
   <section id="s-notif" class="hide">
     <button class="back" onclick="show('s-home')">→ رجوع للمنصة</button>
     <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">🔔 الإشعارات</h2><button class="ra" style="all:unset;cursor:pointer;color:var(--g);font-weight:700;font-size:14px" onclick="nRead('all')">✔ علّم الكل مقروء</button></div>
@@ -312,7 +332,7 @@ function doLogin(p){
   var pin=p||$('pin').value.trim(); $('loginErr').textContent='';
   if(!p) $('loginErr').innerHTML='<span style="color:var(--mut)">جاري الدخول…</span>';
   call('home',[pin],function(h){PIN=pin;store('ansar_pin',pin);render(h)},
-    function(m){store('ansar_pin',null);show('s-login');$('loginErr').textContent=m});
+    function(m){if(p&&obIsNet(m)){PIN=pin;offMode();return}store('ansar_pin',null);show('s-login');$('loginErr').textContent=m});
 }
 function logout(){PIN='';clearInterval(NTT);NT=null;HV=null;$('hBtn').classList.add('hide');$('nBell').classList.add('hide');store('ansar_pin',null);store('ansar_act',null);$('pin').value='';$('hello').textContent='';$('logout').classList.add('hide');show('s-login')}
 
@@ -341,12 +361,14 @@ function render(h){
     t+=tile('javascript:openPrint()','🖨️','طباعة كشف','كشف توزيع أو تسليم بالمحددات اللي تختارها — PDF');
     t+=tile('javascript:openFb()','💬','شكاوي ومقترحات','الرسايل اللي جاية من الصفحة العامة');
     t+=tile('javascript:openFbl()','📘','بوستات فيسبوك','ضيف لينك بوست يظهر في الصفحة العامة');
+    t+=tile('javascript:openPush()','📣','إرسال إشعار','إشعار على موبايلات المتبرعين أو الفريق');
   }
   t+=tile('javascript:openOrg()','🏛️','الجمعية','بيانات الإشهار واللائحة ومجلس الإدارة');
   t+=tile('#','🤝','الكفالات','كفالات الأسر والمتبرعين','soon','قريباً');
   t+=tile('../','🌐','الصفحة العامة','صفحة الجمعية للناس — الأنشطة وآخر التوزيعات');
   t+=tile('javascript:openHelp()','🙋','ساعدني','شرح كل مهمة خطوة بخطوة — وفيديو لو موجود');
-  $('tiles').innerHTML=t;
+  $('tiles').innerHTML=t;HOME_OK=1;
+  appDraw();obBadge();obFlush(false);if(window.ANSAR_APP)ANSAR_APP.syncTeam();
   var o=h.open||[];
   $('actsCard').classList.toggle('hide',!h.canDistribute);
   $('acts').innerHTML=o.length?o.map(function(a){return '<div><span>'+esc(a.name)+'</span><span><em>'+a.today+'</em> النهارده · '+a.total+' إجمالي</span></div>'}).join(''):'<div><span style="color:var(--mut)">مفيش عطاء مفتوح — افتحه من «إدارة العطاءات»</span></div>';
@@ -402,7 +424,13 @@ function rfStart(){var q=$('rfQ').value.trim();if(!q){$('rfMsg').innerHTML='<div
     if(dr){RF.V=dr.V;RF.R=dr.R||{};RF.restored=1;if(dr.u)RF.uuid=dr.u}
     else{walk(RSPEC.items,function(f){if(f.pf&&d.pf[f.pf]!=null&&d.pf[f.pf]!==''&&f.k!=='calculate')RF.V[f.n]=String(d.pf[f.pf])})}
     walk(RSPEC.items,function(f){if(f.def&&!f.rep&&(RF.V[f.n]==null||RF.V[f.n]===''))RF.V[f.n]=f.def==='today()'?new Date().toISOString().slice(0,10):f.def});
-    rfDraw();rfNext()},function(m){$('rfMsg').innerHTML='<div class="err">'+esc(m)+'</div>'})}
+    rfDraw();rfNext()},function(m){$('rfMsg').innerHTML='<div class="err">'+esc(m)+'</div>'+(obIsNet(m)?'<button class="btn" onclick="rfOffline()">📴 كمّل البحث من غير نت</button><div class="msg" style="text-align:right">بيانات الأسرة القديمة مش هتتملى لوحدها، والبحث هيتحفظ على الموبايل ويتبعت أول ما النت يرجع.</div>':'')})}
+function rfOffline(){var q=$('rfQ').value.trim().replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}),isFn=/^\d{5}$/.test(q);
+  RF.ctx={research_type:isFn?'update':'new',fn:isFn?q:''};RF.V.qr=q;RF.uuid=rfUid();RF.offline=1;if(/^\d{14}$/.test(q))RF.V.nid=q;
+  var dr=null;try{dr=JSON.parse(load('ansar_rf_'+q)||'null')}catch(e){}if(dr){RF.V=dr.V;RF.R=dr.R||{};RF.restored=1;if(dr.u)RF.uuid=dr.u}
+  walk(RSPEC.items,function(f){if(f.def&&!f.rep&&(RF.V[f.n]==null||RF.V[f.n]===''))RF.V[f.n]=f.def==='today()'?new Date().toISOString().slice(0,10):f.def});rfDraw()}
+function offMode(){rfOpen();$('logout').classList.remove('hide');$('rfBody').insertAdjacentHTML('afterbegin','<div class="card" style="text-align:right;border:2px solid var(--o)"><b style="color:var(--o)">📴 مفيش نت دلوقتي</b><div class="msg" style="text-align:right">تقدر تملا بحث، وهيتحفظ على الموبايل ويتبعت لوحده أول ما النت يرجع.</div><button onclick="location.reload()">🔄 جرّب تاني</button></div>');obBadge()}
+var HOME_OK=0;window.addEventListener('online',function(){if(PIN&&!HOME_OK)doLogin(PIN)});
 function walk(items,cb,rep){items.forEach(function(x){if(x.items)walk(x.items,cb,x.k==='repeat'?x:rep);else cb(x,rep)})}
 var RFF={};(function(){walk(RSPEC.items,function(f,rep){RFF[f.n]=f;f.rep=rep?rep.n:''})})();
 function rfVal(n,row){var f=RFF[n];if(!f){return RF.ctx[n]!=null?RF.ctx[n]:''}
@@ -441,12 +469,12 @@ function rfGps(n){var m=$('rf_'+n+'_m');if(!navigator.geolocation){m.textContent
   navigator.geolocation.getCurrentPosition(function(p){$('rf_'+n+'_la').value=p.coords.latitude.toFixed(6);$('rf_'+n+'_lo').value=p.coords.longitude.toFixed(6);RF.V[n]=p.coords.latitude.toFixed(6)+' '+p.coords.longitude.toFixed(6)+' 0 '+Math.round(p.coords.accuracy);m.textContent='الدقة حوالي '+Math.round(p.coords.accuracy)+' متر';rfSaveDraft()},
    function(){m.textContent='مش قادر أحدد الموقع — اسمح للمتصفح بالموقع، أو الصق لينك جوجل ماب تحت'},{enableHighAccuracy:true,timeout:20000,maximumAge:0})}
 function rfImg(inp,n,px){var file=inp.files&&inp.files[0];if(!file)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,px/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-  var b64=c.toDataURL('image/jpeg',0.8).split(',')[1],name=n+'-'+Date.now()+'.jpg';RF.F[n]={name:name,b64:b64,mime:'image/jpeg'};RF.V[n]=name;rfDraw()};im.src=rd.result};rd.readAsDataURL(file)}
+  var b64=c.toDataURL('image/jpeg',0.8).split(',')[1],name=n+'-'+Date.now()+'.jpg';RF.F[n]={name:name,b64:b64,mime:'image/jpeg'};RF.V[n]=name;RF.mode?rvFormDraw():rfDraw()};im.src=rd.result};rd.readAsDataURL(file)}
 function rfRefresh(){var rg=document.querySelector('#rfBody .rff[data-n="region"]');if(rg){var nb=$('rfNfn');if(!nb){nb=document.createElement('div');nb.id='rfNfn';nb.className='msg rfnote';nb.style.marginTop='8px';rg.appendChild(nb)}nb.style.display=RF.nfn?'':'none';nb.innerHTML=RF.nfn?'🔢 رقم الملف المقترح: <b>'+esc(RF.nfn)+'</b> — بيتأكد (أو تغيّره الإدارة) عند الاعتماد':''}
   [].forEach.call(document.querySelectorAll('#rfBody .rff'),function(el){var f=RFF[el.dataset.n],ri=el.dataset.ri,row=ri!=null?((RF.R[f.rep]||[])[ri]||{}):null;
   el.classList.toggle('hide',!rfRel(f,row));if(f.k==='note'){var nt=el.querySelector('.rfnote');if(nt)nt.innerHTML=rfTpl(f.l||'',row)}});
   var z=document.querySelector('#rfBody .rff[data-n="zone"] .chips');if(z){var f=RFF.zone,cur=RF.V.zone||'',L=rfChoices(f);if(z.dataset.rg!==String(RF.V.region)){z.dataset.rg=String(RF.V.region);z.innerHTML=L.map(function(c){return '<label class="chip"><input type="radio" name="rf_zone" value="'+esc(c[0])+'"'+(c[0]===cur?' checked':'')+' data-n="zone" onchange="rfIn(this)"><span>'+esc(c[1])+'</span></label>'}).join('')}}}
-function rfSaveDraft(){store('ansar_rf_'+(RF.ctx.fn||RF.V.qr),JSON.stringify({V:RF.V,R:RF.R,u:RF.uuid}))}
+function rfSaveDraft(){if(RF.mode)return;store('ansar_rf_'+(RF.ctx.fn||RF.V.qr),JSON.stringify({V:RF.V,R:RF.R,u:RF.uuid}))}
 function rfCount(p){return Math.max(0,Math.min(20,Number(rfEval(p.count))||0))}
 function rfDraw(){var p=RF.pages[RF.page],h='';
   h+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><b>'+esc(p.l||'')+'</b><small class="msg" style="margin:0">'+(RF.page+1)+' / '+RF.pages.length+'</small></div>'+
@@ -476,7 +504,10 @@ function rfSubmit(){if(RF.busy||!rfCheck())return;RF.busy=1;[].forEach.call(docu
   $('rfErr').innerHTML='<span class="msg">جاري إرسال البحث لكوبو'+(files.length?' مع '+files.length+' صورة':'')+'…</span>';
   call('resSubmit',[PIN,rfTree(),files,{start:RF.start,uuid:RF.uuid}],function(d){try{localStorage.removeItem('ansar_rf_'+(RF.ctx.fn||RF.V.qr))}catch(e){}RS=null;
     $('rfBody').innerHTML='<div class="card" style="text-align:center"><div style="font-size:48px">✅</div><h2 style="color:var(--g)">البحث اتبعت</h2><div class="msg">اتسجل في كوبو باسم '+esc(d.by)+'، وهيظهر في «الأبحاث» مستني اعتماد الإدارة.</div><button class="btn" onclick="openRes()">📋 الأبحاث</button><button class="btn" style="background:#fff;color:var(--g);border:2px solid var(--g)" onclick="show(\'s-home\')">رجوع للمنصة</button></div>'},
-   function(m){RF.busy=0;[].forEach.call(document.querySelectorAll('#rfBody .sumbar button'),function(b){b.disabled=false});$('rfErr').textContent=m+' — لو دوست تاني مش هيتكرر'})}
+   function(m){RF.busy=0;[].forEach.call(document.querySelectorAll('#rfBody .sumbar button'),function(b){b.disabled=false});
+     if(obIsNet(m)){var dk='ansar_rf_'+(RF.ctx.fn||RF.V.qr);obPut({uuid:RF.uuid,tree:rfTree(),files:files,meta:{start:RF.start,uuid:RF.uuid},draft:dk,name:RF.V.name||'',at:new Date().toISOString()},function(e){if(e){$('rfErr').textContent=e;return}
+       $('rfBody').innerHTML='<div class="card" style="text-align:center"><div style="font-size:48px">📥</div><h2 style="color:var(--o)">البحث اتحفظ على الموبايل</h2><div class="msg">مفيش نت دلوقتي — البحث هيتبعت لكوبو لوحده أول ما النت يرجع (وانت فاتح المنصة). متمسحش بيانات المتصفح لحد ما يتبعت.</div><button class="btn" onclick="rfOpen()">📝 بحث تاني</button><button class="btn" style="background:#fff;color:var(--g);border:2px solid var(--g)" onclick="HOME_OK?show(\'s-home\'):location.reload()">رجوع للمنصة</button></div>';obBadge()});return}
+     $('rfErr').textContent=m+' — لو دوست تاني مش هيتكرر'})}
 
 /* ===== تعديل ملف ===== */
 var FF=null,FE=[['بيانات رب الأسرة',[['اسم_رب_الأسرة','الاسم'],['الرقم_القومي','الرقم القومي','n'],['الهاتف','التليفون','n'],['هاتف_بديل','تليفون بديل','n'],['صاحب_الهاتف_البديل','صاحب البديل'],['عمل_رب_الأسرة','العمل'],['الجنس','الجنس',['','ذكر','انثي']],['الحالة_الاجتماعية','الحالة الاجتماعية',['','متزوج','اعزب','ارمل','مطلق','متوفي']],['الحالة_الصحية','الحالة الصحية',['','معافي','مريض']],['نوع_المرض','نوع المرض',['','مزمن','اعاقه']],['وصف_الحالة_الصحية','وصف الحالة']]],
@@ -518,14 +549,14 @@ function rDraw(){if(!RS)return;var q=$('rQ').value.trim(),f=(document.querySelec
       '<div class="m">'+esc(r.type)+' — '+esc(r.dt)+' — الباحث: '+esc(r.by)+(r.src?' — من '+esc(r.src):'')+'<br>'+
       (r.vs==='validation_status_approved'?'<span class="badge ok">✅ معتمد</span> ':r.vs==='validation_status_not_approved'?'<span class="badge no">✖ مرفوض</span> ':r.vs==='validation_status_on_hold'?'<span class="badge" style="background:#EAF0FB;color:#2B4C8C">↩ مرجّع للتعديل</span> ':'<span class="badge" style="background:#FFF4E5;color:#8A4B0B">⏳ مستني اعتماد</span> ')+
       (u?'<span class="badge ok">📍 فيه لوكيشن'+(r.loc?'':' (لينك)')+'</span>':'<span class="badge no">⚠️ ناقص لوكيشن</span>')+'</div>'+(r.note&&r.vs==='validation_status_on_hold'?'<div class="msg" style="text-align:right;margin:0 0 8px;color:#2B4C8C">↩ ملاحظة الإدارة: '+esc(r.note)+'</div>':'')+scReview(r)+
-      '<div class="ra"><button class="p" onclick="rView('+r.id+')">👁 اعرض البحث كامل</button>'+(u?'<a href="'+esc(u)+'" target="_blank" rel="noopener">🗺️ الخريطة</a>':'')+
+      '<div class="ra"><button class="p" onclick="rvOpen('+r.id+',\'view\')">👁 افتح البحث</button>'+(!ADMIN&&r.vs==='validation_status_on_hold'?'<button class="p" onclick="rvOpen('+r.id+',\'edit\')">✏️ عدّل البحث</button><button onclick="rvResend('+r.id+')">📤 رجّعه للمراجعة</button>':'')+(u?'<a href="'+esc(u)+'" target="_blank" rel="noopener">🗺️ الخريطة</a>':'')+
       '<button onclick="rEdit('+r.id+')">'+(u?'✏️ عدّل اللوكيشن':'➕ ضيف لوكيشن')+'</button></div>'+
       (ADMIN&&r.vs!=='validation_status_approved'?'<div class="ra" style="margin-top:8px"><button class="p" onclick="rDecide('+r.id+',\'approve\')">✅ اعتماد البحث</button><button onclick="rvBack('+r.id+')">↩ إرجاع للباحث</button><button onclick="rDecide('+r.id+',\'reject\')">✖ رفض</button><button onclick="rDel('+r.id+')" style="color:var(--red)">🗑 حذف (مكرر/غلط)</button></div>':'')+
       '<div id="rv'+r.id+'"></div><div id="le'+r.id+'"></div></div>'}).join('')||'<div class="card msg">مفيش أبحاث بالبحث ده</div>'}
 function rDel(id){var c=$('le'+id);if(!confirm('حذف البحث ده نهائي من كوبو؟ استخدمها للبحث المكرر أو اللي اتبعت غلط بس.'))return;
   c.innerHTML='<div class="msg">جاري الحذف…</div>';
   call('resDelete',[PIN,id],function(){RS=RS.filter(function(x){return x.id!==id});rDraw()},function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'})}
-/* ===== مراجعة البحث كامل: عرض، تعديل، إرجاع للباحث، وملخص التغييرات عن ملف الأسرة ===== */
+/* ===== مساعدات المراجعة: القيم، والناقص، وملخص التغييرات =====
 var RV={};
 function rvLab(list,code){var L=RSPEC.choices[list]||[];return String(code==null?'':code).split(' ').filter(String).map(function(c){var x=L.filter(function(y){return y[0]===c})[0];return x?x[1]:c}).join('، ')}
 function rvVal(f,v){if(v==null||v==='')return '';v=String(v);
@@ -536,17 +567,7 @@ function rvVal(f,v){if(v==null||v==='')return '';v=String(v);
   return esc(v)}
 var RV_CALC={fn:'رقم الملف',inc_total:'مجموع الإيرادات',obl_total:'مجموع الالتزامات',net:'صافي الدخل'};
 function rvShowF(f){return f.k!=='note'&&f.k!=='barcode'&&(f.k!=='calculate'||f.n in RV_CALC)}
-function rvEditF(f){return f.k!=='note'&&f.k!=='calculate'&&f.k!=='image'&&f.k!=='barcode'}
-function rvRow(l,v){return '<tr><th style="text-align:right;font-weight:600;color:var(--mut);padding:5px 6px;vertical-align:top;width:42%">'+esc(l)+'</th><td style="padding:5px 6px">'+v+'</td></tr>'}
-function rvInput(f,key,v){v=v==null?'':String(v);var a=' data-k="'+esc(key)+'" class="tx" style="width:100%"';
-  if(f.k==='select_one')return '<select'+a+'><option value=""></option>'+(RSPEC.choices[f.list]||[]).map(function(c){return '<option value="'+esc(c[0])+'"'+(c[0]===v?' selected':'')+'>'+esc(c[1])+'</option>'}).join('')+'</select>';
-  if(f.k==='select_multiple'){var have=v.split(' ');return '<div class="chips" data-km="'+esc(key)+'">'+(RSPEC.choices[f.list]||[]).map(function(c){return '<label class="chip"><input type="checkbox" value="'+esc(c[0])+'"'+(have.indexOf(c[0])>=0?' checked':'')+'><span>'+esc(c[1])+'</span></label>'}).join('')+'</div>'}
-  if(f.k==='integer')return '<input'+a+' inputmode="numeric" value="'+esc(v)+'">';
-  if(f.k==='date')return '<input'+a+' type="date" value="'+esc(v.slice(0,10))+'">';
-  if(f.app==='multiline')return '<textarea'+a+' rows="3">'+esc(v)+'</textarea>';
-  return '<input'+a+' value="'+esc(v)+'"'+(f.k==='geopoint'?' placeholder="خط العرض خط الطول" dir="ltr"':'')+'>'}
 function rvErr(m,fn){return /غير معروف/.test(m)?'محتاج تحديث السيرفر ('+fn+')':m}
-/* البيانات الناقصة: بيقيّم شروط الاستمارة (rel/req) على البحث نفسه */
 var RVG={};RSPEC.items.forEach(function(g){(g.items||[]).forEach(function(f){RVG[f.n]=g.k==='group'?g.n:''})});
 function rvV(S,row,n){var f=RFF[n];if(!f)return '';var x=f.rep?(row?row[f.rep+'/'+n]:''):S[(RVG[n]||'')+'/'+n];x=x==null?'':x;if(f.k==='integer'&&x!=='')return Number(x);return x}
 var RVC={};function rvEval(e,S,row,cur){if(!e)return true;var fn=RVC[e]||(RVC[e]=new Function('v','sel','cnt','co','rx','V','return ('+e+')'));
@@ -566,9 +587,6 @@ function rvMissBox(M){
     :'<div class="msg" style="text-align:right;margin:0 0 8px;color:var(--g);font-weight:700">✔ كل الخانات المطلوبة متعبية</div>';
   if(M.opt.length)h+='<details style="margin:0 0 8px"><summary style="cursor:pointer;color:var(--mut)">خانات اختيارية فاضية ('+M.opt.length+')</summary><div class="msg" style="text-align:right;margin:4px 0 0">'+M.opt.map(esc).join('، ')+'</div></details>';
   return h}
-function rView(id){var b=$('rv'+id);if(!b)return;if(b.innerHTML){b.innerHTML='';return}
-  b.innerHTML='<div class="le"><div class="spin">جاري تحميل البحث كامل من كوبو…</div></div>';
-  call('resGet',[PIN,id],function(d){RV[id]=d;d.edit=false;rvDraw(id)},function(m){b.innerHTML='<div class="le"><div class="err">'+esc(rvErr(m,'resGet'))+'</div></div>'})}
 function rvSummary(d){
   if(d.isNew)return '<div class="msg" style="text-align:right;background:#FFF4E5;color:#8A4B0B;border-radius:12px;padding:8px 10px;margin:0 0 8px">🆕 <b>حالة جديدة</b> — مش مسجلة في الجمعية، والاعتماد هيعمل لها ملف جديد.</div>';
   var h='<div style="background:#F3FAF6;border:1px solid #CFE7D9;border-radius:12px;padding:8px 10px;margin:0 0 8px"><b>🔄 تحديث على ملف '+esc(d.fam.fn)+'</b> — '+esc(d.fam.name)+(d.fam.status?' ('+esc(d.fam.status)+')':'')+'<br>';
@@ -578,55 +596,92 @@ function rvSummary(d){
     d.changes.map(function(c){return '<tr style="border-top:1px solid #E3EFE8"><th style="text-align:right;padding:4px;font-weight:600;width:30%">'+esc(c.k.replace(/_/g,' '))+'</th><td style="padding:4px;color:var(--red);text-decoration:line-through">'+(esc(c.old)||'<i>فاضي</i>')+'</td><td style="padding:4px;color:var(--g);font-weight:700">'+esc(c.nv)+'</td></tr>'}).join('')+'</table>';
   if(mc)h+='<div class="msg" style="text-align:right;margin:6px 0 0">👨‍👩‍👧 الأفراد: كانوا '+d.members.old.length+' وبقوا '+d.members.nv.length+(d.members.add.length?' — <b style="color:var(--g)">جداد:</b> '+esc(d.members.add.join('، ')):'')+(d.members.del.length?' — <b style="color:var(--red)">مش موجودين في البحث:</b> '+esc(d.members.del.join('، ')):'')+'</div>';
   return h+'</div>'}
-function rvDraw(id){var d=RV[id],b=$('rv'+id);if(!d||!b)return;var S=d.sub,ed=d.edit,h='<div class="le">';
-  h+=rvSummary(d);
-  if(d.notes&&d.notes.length)h+='<div class="msg" style="text-align:right;margin:0 0 8px">🗒️ '+d.notes.map(function(n){return '<b>'+esc(n.type)+'</b> — '+esc(n.by)+' — '+esc(n.dt)+(n.note?': '+esc(n.note):'')}).join('<br>🗒️ ')+'</div>';
-  if(ed)h+='<div class="msg" style="text-align:right;color:var(--o);margin:0 0 6px">✏️ وضع التعديل — غيّر اللي محتاجه ودوس «حفظ التعديلات». الصور وأفراد الأسرة بيتعدلوا من كوبو.</div>';
-  var MS=rvMissing(S);
-  if(!ed)h+=rvMissBox(MS);
+/* ===== البحث بنفس شكل الاستمارة: المراجعة، والتعديل، والبحث المرجّع للباحث ===== */
+function rView(id){rvOpen(id,'view')}
+function rvOpen(id,mode){show('s-rf');window.scrollTo(0,0);
+  $('rfBody').innerHTML='<div class="card"><div class="spin">جاري تحميل البحث كامل من كوبو…</div></div>';
+  call('resGet',[PIN,id],function(d){rvLoad(d,mode)},function(m){$('rfBody').innerHTML='<div class="card"><div class="err">'+esc(rvErr(m,'resGet'))+'</div><div class="ra"><button onclick="openRes()">→ رجوع للأبحاث</button></div></div>'})}
+function rvLoad(d,mode){var S=d.sub;RV[d.id]=d;
+  RF={V:{},R:{},F:{},ctx:{},page:0,start:new Date().toISOString(),pages:RSPEC.items.filter(function(x){return x.k==='group'||x.k==='repeat'}),mode:mode,rv:d,uuid:rfUid(),ph:{}};
   RSPEC.items.forEach(function(g){
-    if(g.k==='group'){var rows='',miss=0;
-      g.items.forEach(function(f){var key=g.n+'/'+f.n,v=S[key];
-        if(ed){if(rvEditF(f))rows+=rvRow(f.l||f.n,rvInput(f,key,v));return}
-        if(!rvShowF(f)||!rvRel(f,S,null))return;
-        if(f.k==='calculate'&&(v==null||v===''))return;
-        if(v!=null&&v!==''){rows+=rvRow(f.l||RV_CALC[f.n]||f.n,rvVal(f,v));return}
-        var rq=rvReq(f,S,null);if(rq)miss++;
-        rows+=rvRow(f.l||f.n,rq?'<b style="color:var(--red)">⚠️ ناقص — مطلوب</b>':'<span style="color:#9AA5A0">— مش متعبي</span>')});
-      if(rows)h+='<details open style="margin-bottom:6px"><summary style="font-weight:700;cursor:pointer;padding:4px 0">'+esc(g.l)+(miss?' <span class="badge no">'+miss+' ناقص</span>':'')+'</summary><table style="width:100%;border-collapse:collapse;font-size:14px">'+rows+'</table></details>'}
-    else if(g.k==='repeat'&&!ed){var R=S[g.n]||[],want=rvCount(g,S);
-      if(!R.length&&!want)return;
-      var gap=want!=null&&R.length<want?'<div class="msg" style="text-align:right;margin:4px 0;color:var(--red)">⚠️ المفروض '+want+' — المسجّل '+R.length+' بس</div>':'';
-      h+='<details open style="margin-bottom:6px"><summary style="font-weight:700;cursor:pointer;padding:4px 0">'+esc(g.l)+' ('+R.length+')'+(gap?' <span class="badge no">ناقص</span>':'')+'</summary>'+gap+R.map(function(row,i){var rows='';
-        g.items.forEach(function(f){var v=row[g.n+'/'+f.n];if(!rvShowF(f)||!rvRel(f,S,row))return;
-          if(v!=null&&v!==''){rows+=rvRow(f.l,rvVal(f,v));return}
-          rows+=rvRow(f.l,rvReq(f,S,row)?'<b style="color:var(--red)">⚠️ ناقص — مطلوب</b>':'<span style="color:#9AA5A0">— مش متعبي</span>')});
-        return '<div style="border:1px dashed var(--line);border-radius:10px;padding:4px 6px;margin:4px 0"><b style="font-size:13px">'+esc(g.ih||'فرد')+' '+(i+1)+'</b><table style="width:100%;border-collapse:collapse;font-size:13px">'+rows+'</table></div>'}).join('')+'</details>'}});
-  if(d.att)h+='<div class="msg" style="text-align:right;margin:0 0 6px">📎 '+d.att+' صورة مرفوعة — '+(ADMIN?'<a href="'+LINKS.koboData+'" target="_blank" rel="noopener" style="color:var(--g)">افتحها من كوبو</a>':'الإدارة تقدر تشوفها من كوبو')+'</div>';
+    if(g.k==='group')g.items.forEach(function(f){var v=S[g.n+'/'+f.n];if(v==null||v==='')return;v=String(v);if(f.ctx)RF.ctx[f.ctx]=v;else RF.V[f.n]=v});
+    else if(g.k==='repeat')RF.R[g.n]=(S[g.n]||[]).map(function(row){var o={};g.items.forEach(function(f){var v=row[g.n+'/'+f.n];if(v!=null&&v!=='')o[f.n]=String(v)});return o})});
+  RF.ctx.fn=String(S['g_file/fn']||'');RF.ctx.research_type=RF.ctx.research_type||(d.isNew?'new':'update');
+  rvFormDraw(true)}
+function rvStLab(vs){return vs==='validation_status_approved'?'✅ معتمد':vs==='validation_status_not_approved'?'✖ مرفوض':vs==='validation_status_on_hold'?'↩ مرجّع للتعديل':'⏳ مستني اعتماد'}
+function rvFormDraw(top){var d=RF.rv,ed=RF.mode==='edit',y=window.scrollY,h='',id=d.id;
+  h+='<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>'+(ed?'✏️ تعديل البحث':'👁 مراجعة البحث')+'</b><span class="badge">'+rvStLab(d.vs)+'</span></div>'+
+    '<div class="msg" style="text-align:right">'+(RF.ctx.research_type==='update'?'🔄 تحديث بحث — ملف '+esc(RF.ctx.fn)+' — '+esc(RF.ctx.old_name||''):'🆕 حالة جديدة')+' — الباحث: '+esc(d.by)+(RF.V.research_date?' — '+esc(RF.V.research_date):'')+'</div></div>';
+  h+='<div class="card">'+rvSummary(d)+(ed?'<div class="msg" style="text-align:right;color:var(--o)">✏️ عدّل اللي محتاجه في أي صفحة، وبعدين دوس «💾 حفظ التعديلات» تحت. الصور القديمة بتفضل زي ما هي لو ما غيّرتهاش.</div>':rvMissBox(rvMissing(d.sub)))+
+    (d.notes&&d.notes.length?'<div class="msg" style="text-align:right;margin:6px 0 0">🗒️ '+d.notes.map(function(n){return '<b>'+esc(n.type)+'</b> — '+esc(n.by)+' — '+esc(n.dt)+(n.note?': '+esc(n.note):'')}).join('<br>🗒️ ')+'</div>':'')+'</div>';
+  RF.pages.forEach(function(p){
+    if(p.k==='repeat'){var n=rfCount(p),R=RF.R[p.n]||(RF.R[p.n]=[]);if(!n&&p.skip0)return;R.length=Math.max(R.length,n);
+      h+='<div class="card"><b style="color:var(--g)">'+esc(p.l||'')+'</b>'+(R.filter(Boolean).length<n&&!ed?' <span class="badge no">المسجّل أقل من المفروض</span>':'')+'</div>';
+      if(!n)h+='<div class="card msg">مفيش أفراد غير رب الأسرة (عدد الأفراد = '+esc(rfVal('members'))+')</div>';
+      for(var i=0;i<n;i++){R[i]=R[i]||{};h+='<div class="card"><h2>'+esc(p.ih||'فرد')+' '+(i+1)+'</h2>'+p.items.map(function(f){return rfField(f,R[i],i)}).join('')+'</div>'}}
+    else h+='<div class="card"><b style="color:var(--g);display:block;margin-bottom:8px">'+esc(p.l||'')+'</b>'+(p.n==='g_result'&&scShowForm()?scBox():'')+p.items.map(function(f){return rfField(f,null,null)}).join('')+'</div>'});
   var A=[];
-  if(ed){A.push('<button class="p" onclick="rvSave('+id+')">💾 حفظ التعديلات</button>');A.push('<button onclick="RV['+id+'].edit=false;rvDraw('+id+')">إلغاء</button>')}
+  if(ed){A.push('<button class="p" onclick="rvFormSave()">💾 حفظ التعديلات</button>');A.push('<button onclick="rvLoad(RV['+id+'],\'view\')">إلغاء</button>')}
   else{
-    if(d.canEdit)A.push('<button onclick="RV['+id+'].edit=true;rvDraw('+id+')">✏️ تعديل البحث</button>');
-    if(d.admin&&d.vs!=='validation_status_approved'){A.push('<button class="p" onclick="rDecide('+id+',\'approve\')">✅ اعتماد</button>');A.push('<button onclick="rvBack('+id+')">↩ إرجاع للباحث</button>');A.push('<button onclick="rDecide('+id+',\'reject\')">✖ رفض</button>');A.push('<button onclick="rDel('+id+')" style="color:var(--red)">🗑 حذف</button>')}
-    if(d.vs==='validation_status_on_hold')A.push('<button class="p" onclick="rvResend('+id+')">📤 خلصت التعديل — رجّعه للمراجعة</button>');
-    A.push('<button onclick="$(\'rv'+id+'\').innerHTML=\'\'">إخفاء</button>')}
-  h+='<div class="ra" style="margin-top:8px">'+A.join('')+'</div><div id="rvm'+id+'"></div></div>';
-  b.innerHTML=h}
-function rvSave(id){var d=RV[id],b=$('rv'+id),ch={},S=d.sub;
-  [].forEach.call(b.querySelectorAll('[data-k]'),function(el){var k=el.getAttribute('data-k'),v=String(el.value).trim(),o=S[k]==null?'':String(S[k]);if(v!==o)ch[k]=v});
-  [].forEach.call(b.querySelectorAll('[data-km]'),function(el){var k=el.getAttribute('data-km'),v=[].filter.call(el.querySelectorAll('input'),function(x){return x.checked}).map(function(x){return x.value}).join(' '),o=S[k]==null?'':String(S[k]);if(v!==o)ch[k]=v});
-  if(Object.keys(ch).some(function(k){return /^g_income\/(inc|obl)_/.test(k)})){var V=function(k){return Number(k in ch?ch[k]:S[k])||0},I=0,O=0;
-    Object.keys(RFF).forEach(function(n){if(RFF[n].k!=='integer')return;if(/^inc_/.test(n))I+=V('g_income/'+n);if(/^obl_/.test(n))O+=V('g_income/'+n)});
-    ch['g_income/inc_total']=String(I);ch['g_income/obl_total']=String(O);ch['g_income/net']=String(I-O)}
-  var n=Object.keys(ch).length;if(!n){d.edit=false;rvDraw(id);return}
-  $('rvm'+id).innerHTML='<div class="msg">جاري حفظ التعديلات في كوبو…</div>';
-  call('resEdit',[PIN,id,ch],function(){b.innerHTML='';rView(id)},function(m){$('rvm'+id).innerHTML='<div class="err">'+esc(rvErr(m,'resEdit'))+'</div>'})}
+    if(d.canEdit)A.push('<button'+(d.vs==='validation_status_on_hold'&&!d.admin?' class="p"':'')+' onclick="RF.mode=\'edit\';rvFormDraw(true)">✏️ تعديل البحث</button>');
+    if(d.admin&&d.vs!=='validation_status_approved'){A.push('<button class="p" onclick="rvApprove()">✅ اعتماد</button>');A.push('<button onclick="rvBack('+id+')">↩ إرجاع للباحث</button>');A.push('<button onclick="rvReject()">✖ رفض</button>');A.push('<button onclick="rvDelete()" style="color:var(--red)">🗑 حذف</button>')}
+    if(d.vs==='validation_status_on_hold')A.push('<button onclick="rvResend('+id+')">📤 خلصت التعديل — رجّعه للمراجعة</button>')}
+  A.push('<button onclick="openRes()">→ رجوع للأبحاث</button>');
+  h+='<div class="card sumbar"><div id="rfErr" class="err"></div><div class="ra">'+A.join('')+'</div></div>';
+  $('rfBody').innerHTML=h;rfRefresh();rvMarkMissing();rvPhotos();
+  if(!ed)[].forEach.call(document.querySelectorAll('#rfBody .rff input,#rfBody .rff textarea,#rfBody .rff select,#rfBody .rff button'),function(e){e.disabled=true;if(e.type==='file'||e.tagName==='BUTTON')e.style.display='none'});
+  window.scrollTo(0,top?0:y)}
+/* الخانات المطلوبة الفاضية بتتعلّم بالأحمر في نفس مكانها */
+function rvMarkMissing(){var ed=RF.mode==='edit';
+  [].forEach.call(document.querySelectorAll('#rfBody .rff'),function(el){var f=RFF[el.dataset.n],ri=el.dataset.ri,row=ri!=null?((RF.R[f.rep]||[])[ri]||{}):null,e=el.querySelector('.rferr');if(!e)return;e.textContent='';
+    if(el.classList.contains('hide')||f.k==='note')return;var v=f.rep?(row[f.n]||''):(RF.V[f.n]||'');
+    var req=f.req==='true'||(f.req&&f.req!=='true'&&rfEval(f.req,row));
+    if(String(v).trim()!=='')return;
+    if(req)e.textContent=ed?'الخانة دي مطلوبة':'⚠️ ناقص — مطلوب';
+    else if(!ed&&f.k!=='image'){var m=document.createElement('div');m.className='msg';m.style.cssText='text-align:right;margin:2px 0 0;color:#9AA5A0';m.textContent='— مش متعبي';e.parentNode.insertBefore(m,e)}})}
+/* الصور: بتتجاب من كوبو عن طريق السيرفر وبتظهر مكانها، ودوسة عليها بتكبّرها */
+function rvPhotos(){[].forEach.call(document.querySelectorAll('#rfBody .rff'),function(el){var f=RFF[el.dataset.n];if(!f||f.k!=='image')return;
+    var ri=el.dataset.ri,row=ri!=null?((RF.R[f.rep]||[])[ri]||{}):null,v=f.rep?(row[f.n]||''):(RF.V[f.n]||'');if(!v)return;
+    var box=document.createElement('div');box.className='rvph';box.style.cssText='margin-top:6px';el.insertBefore(box,el.querySelector('.rferr'));
+    if(RF.F[f.n]){box.innerHTML='<img src="data:'+RF.F[f.n].mime+';base64,'+RF.F[f.n].b64+'" style="max-width:100%;max-height:260px;border-radius:12px;border:1px solid var(--line);cursor:zoom-in" onclick="rvZoom(this.src)"><div class="msg" style="text-align:right">🆕 صورة جديدة هتتحفظ مع التعديل</div>';return}
+    var ph=RF.ph[v];if(ph){box.innerHTML=rvImg(ph);return}
+    box.innerHTML='<div class="msg" style="text-align:right">📷 جاري تحميل الصورة…</div>';
+    call('resPhoto',[PIN,RF.rv.id,v,'medium'],function(d){RF.ph[v]=d;box.innerHTML=rvImg(d)},function(m){box.innerHTML='<div class="err" style="text-align:right">📷 '+esc(rvErr(m,'resPhoto'))+'</div>'})})}
+function rvImg(d){return '<img src="data:'+esc(d.mime)+';base64,'+d.b64+'" alt="'+esc(d.name)+'" style="max-width:100%;max-height:260px;border-radius:12px;border:1px solid var(--line);cursor:zoom-in" onclick="rvZoom(this.src)">'}
+function rvZoom(src){var o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99;display:flex;align-items:center;justify-content:center;padding:10px';
+  o.innerHTML='<img src="'+src+'" style="max-width:100%;max-height:100%;object-fit:contain"><button style="position:fixed;top:12px;left:12px;background:#fff;border:0;border-radius:50%;width:40px;height:40px;font-size:20px">✕</button>';o.onclick=function(){o.remove()};document.body.appendChild(o)}
+function rvFormSave(){if(RF.busy)return;
+  if(!rfCheck()){return}
+  RF.busy=1;var d=RF.rv,files=Object.keys(RF.F).map(function(k){return RF.F[k]});
+  [].forEach.call(document.querySelectorAll('#rfBody .sumbar button'),function(b){b.disabled=true});
+  $('rfErr').innerHTML='<span class="msg">جاري حفظ التعديلات في كوبو'+(files.length?' مع '+files.length+' صورة جديدة':'')+'…</span>';
+  call('resEditFull',[PIN,d.id,rfTree(),files,{uuid:RF.uuid}],function(){
+      var done=function(extra){RS=null;$('rfBody').innerHTML='<div class="card" style="text-align:center"><div style="font-size:48px">✅</div><h2 style="color:var(--g)">التعديلات اتحفظت</h2><div class="msg">'+extra+'</div><button class="btn" onclick="rvOpen('+d.id+',\'view\')">👁 افتح البحث تاني</button><button class="btn" style="background:#fff;color:var(--g);border:2px solid var(--g)" onclick="openRes()">📋 الأبحاث</button></div>'};
+      if(d.vs==='validation_status_on_hold'&&!d.admin)call('resResubmit',[PIN,d.id,'اتعدّل من المنصة'],function(){done('البحث رجع للإدارة للمراجعة.')},function(){done('دوس «📤 رجّعه للمراجعة» من الأبحاث عشان يوصل للإدارة.')});
+      else done('البحث اتحدّث في كوبو بنفس رقمه.')},
+    function(m){RF.busy=0;[].forEach.call(document.querySelectorAll('#rfBody .sumbar button'),function(b){b.disabled=false});$('rfErr').textContent=rvErr(m,'resEditFull')})}
+function rvMsg(h){var c=$('rfErr');if(c)c.innerHTML=h}
+function rvDone(icon,title,msg){RS=null;$('rfBody').innerHTML='<div class="card" style="text-align:center"><div style="font-size:48px">'+icon+'</div><h2 style="color:var(--g)">'+esc(title)+'</h2><div class="msg">'+msg+'</div><button class="btn" onclick="openRes()">📋 الأبحاث</button></div>';window.scrollTo(0,0)}
+function rvApprove(){var d=RF.rv,go=function(nf){rvMsg('<span class="msg">جاري الاعتماد وتحديث ملف الأسرة…</span>');
+    call('resDecide',[PIN,d.id,'approve','',nf],function(x){rvDone('✅','البحث اتعتمد',x.isNew?'اتعمل ملف جديد رقم <b>'+esc(x.fn)+'</b>':'ملف '+esc(x.fn)+' اتحدّث ('+x.changes+' تعديل)')},function(m){rvMsg(esc(m))})};
+  if(d.isNew){rvMsg('<span class="msg">جاري تجهيز رقم الملف…</span>');
+    call('resNextFn',[PIN,RF.V.region||''],function(x){var n=prompt('حالة جديدة — ده رقم الملف التالي في المنطقة.\nتقدر تغيّره لو عايز ترتيب معين (5 أرقام)، وبعدين دوس OK للاعتماد:',x.fn);
+      if(n==null){rvMsg('');return}go(n.replace(/[٠-٩]/g,function(c){return '٠١٢٣٤٥٦٧٨٩'.indexOf(c)}).replace(/\D/g,''))},function(m){rvMsg(esc(m))});return}
+  if(!confirm('اعتماد البحث ده؟ بياناته هتتكتب في ملف الأسرة '+d.fam.fn+'.'))return;go('')}
+function rvReject(){var d=RF.rv;if(!confirm('رفض البحث ده؟'))return;rvMsg('<span class="msg">جاري الرفض…</span>');
+  call('resDecide',[PIN,d.id,'reject','',''],function(){rvDone('✖','البحث اترفض','')},function(m){rvMsg(esc(m))})}
+function rvDelete(){var d=RF.rv;if(!confirm('حذف البحث ده نهائي من كوبو؟ استخدمها للبحث المكرر أو اللي اتبعت غلط بس.'))return;rvMsg('<span class="msg">جاري الحذف…</span>');
+  call('resDelete',[PIN,d.id],function(){rvDone('🗑','البحث اتحذف','')},function(m){rvMsg(esc(m))})}
 function rvBack(id){var note=prompt('إرجاع البحث للباحث — اكتب المطلوب يعدّله إيه:');if(note==null)return;note=note.trim();if(!note){alert('لازم تكتب الملاحظة');return}
-  var c=$('le'+id);c.innerHTML='<div class="msg">جاري الإرجاع…</div>';
-  call('resReturn',[PIN,id,note],function(){var r=RS.filter(function(x){return x.id===id})[0];if(r){r.vs='validation_status_on_hold';r.note=note}delete RV[id];rDraw();var cc=$('le'+id);if(cc)cc.innerHTML='<div class="msg" style="color:#2B4C8C;font-weight:700">↩ البحث اترجع للباحث بالملاحظة</div>'},
-   function(m){c.innerHTML='<div class="err">'+esc(rvErr(m,'resReturn'))+'</div>'})}
+  var c=$('le'+id)||$('rfErr');if(c)c.innerHTML='<div class="msg">جاري الإرجاع…</div>';
+  call('resReturn',[PIN,id,note],function(){var r=(RS||[]).filter(function(x){return x.id===id})[0];if(r){r.vs='validation_status_on_hold';r.note=note}delete RV[id];
+      if($('s-rf')&&!$('s-rf').classList.contains('hide')){rvDone('↩','البحث اترجع للباحث','الملاحظة: '+esc(note));return}
+      rDraw();var cc=$('le'+id);if(cc)cc.innerHTML='<div class="msg" style="color:#2B4C8C;font-weight:700">↩ البحث اترجع للباحث بالملاحظة</div>'},
+   function(m){if(c)c.innerHTML='<div class="err">'+esc(rvErr(m,'resReturn'))+'</div>'})}
 function rvResend(id){var note=prompt('ملاحظة للإدارة (اختياري) — عدّلت إيه؟','');if(note==null)return;
-  call('resResubmit',[PIN,id,note],function(){var r=RS.filter(function(x){return x.id===id})[0];if(r){r.vs='';r.note=''}delete RV[id];rDraw();var cc=$('le'+id);if(cc)cc.innerHTML='<div class="msg" style="color:var(--g);font-weight:700">📤 البحث رجع للإدارة للمراجعة</div>'},
+  call('resResubmit',[PIN,id,note],function(){var r=(RS||[]).filter(function(x){return x.id===id})[0];if(r){r.vs='';r.note=''}delete RV[id];
+      if($('s-rf')&&!$('s-rf').classList.contains('hide')){rvDone('📤','البحث رجع للإدارة للمراجعة','');return}
+      rDraw();var cc=$('le'+id);if(cc)cc.innerHTML='<div class="msg" style="color:var(--g);font-weight:700">📤 البحث رجع للإدارة للمراجعة</div>'},
    function(m){alert(rvErr(m,'resResubmit'))})}
 var AL=null,ATYPES=['إطعام','لحوم','زكاة','شنطة مواد غذائية','كسوة','مبلغ نقدي','إعانة طارئة','كفالة','أخرى'],
   AFQ={'مرة واحدة':'الأسرة تستلم مرة واحدة بس في العطاء ده','يومي':'مرة كل يوم (زي وجبة الخير)','شهري':'مرة كل شهر','بدون حد':'يتسجّل كل مرة من غير منع تكرار'},
@@ -1013,6 +1068,43 @@ function pPrint(){
   var old=document.title;document.title=title+(type?' — '+type:'');
   window.onafterprint=function(){document.title=old};
   setTimeout(function(){window.print()},350)}
+/* ===== التطبيق على الموبايل: تثبيت، إشعارات، وبحث من غير نت ===== */
+window.ANSAR_PWA={sw:'/app/sw.js',scope:'/app/',kind:'team',api:API,pin:function(){return PIN},onChange:function(){appDraw()}};
+function appDraw(){var A=window.ANSAR_APP,b=$('appBox');if(!A||!b||!PIN)return;var h=[],st=A.pushState();
+  if(A.canInstall())h.push('<button onclick="ANSAR_APP.install()">📲 ثبّت المنصة على موبايلك</button>');
+  if(st==='off')h.push('<button class="p" onclick="appPushOn()">🔔 فعّل الإشعارات على الموبايل</button>');
+  var m=st==='ios-install'?'🔔 على الآيفون: ثبّت المنصة على الشاشة الرئيسية الأول وافتحها منها عشان الإشعارات توصلك.':st==='denied'?'الإشعارات مقفولة من إعدادات المتصفح — افتحها من إعدادات الموقع.':'';
+  b.innerHTML=h.length||m?'<div class="ra">'+h.join('')+'</div>'+(m?'<div class="msg" style="text-align:right">'+m+'</div>':'')+'<div id="appMsg"></div>':'';
+  b.style.display=b.innerHTML?'':'none'}
+function appPushOn(){$('appMsg').innerHTML='<div class="msg">جاري التفعيل…</div>';ANSAR_APP.enablePush(function(e){appDraw();var m=$('appMsg');if(m)m.innerHTML=e?'<div class="err">'+esc(e)+'</div>':'<div class="msg" style="color:var(--g);font-weight:700">✅ الإشعارات شغالة على الموبايل ده</div>'})}
+
+/* صندوق الأبحاث اللي مستنية النت (IndexedDB عشان الصور) */
+var OB={db:null};
+function obDb(cb){if(OB.db)return cb(OB.db);try{var r=indexedDB.open('ansar_outbox',1);r.onupgradeneeded=function(){r.result.createObjectStore('rf',{keyPath:'uuid'})};r.onsuccess=function(){OB.db=r.result;cb(OB.db)};r.onerror=function(){cb(null)}}catch(e){cb(null)}}
+function obPut(item,cb){obDb(function(db){if(!db)return cb('الموبايل مش بيسمح بالحفظ');var t=db.transaction('rf','readwrite');t.objectStore('rf').put(item);t.oncomplete=function(){cb(null)};t.onerror=function(){cb('مش قادر أحفظ البحث على الموبايل')}})}
+function obAll(cb){obDb(function(db){if(!db)return cb([]);var q=db.transaction('rf').objectStore('rf').getAll();q.onsuccess=function(){cb(q.result||[])};q.onerror=function(){cb([])}})}
+function obDel(id){obDb(function(db){if(db)db.transaction('rf','readwrite').objectStore('rf').delete(id)})}
+function obIsNet(m){return /مفيش اتصال/.test(String(m))}
+function obBadge(){obAll(function(L){var b=$('obBox');if(!b)return;b.style.display=L.length?'':'none';
+  b.innerHTML=L.length?'📤 <b>'+L.length+'</b> بحث محفوظ على الموبايل ومستني النت — '+(navigator.onLine?'<button onclick="obFlush(true)">ابعتهم دلوقتي</button>':'هيتبعتوا لوحدهم أول ما النت يرجع'):''})}
+function obFlush(show){if(OB.busy||!PIN)return;obAll(function(L){if(!L.length)return obBadge();OB.busy=1;var i=0,ok=0;
+  (function nx(){if(i>=L.length){OB.busy=0;obBadge();if(show||ok)toast(ok?'📤 اتبعت '+ok+' بحث من اللي كانوا مستنيين النت':'لسه مفيش نت');return}var it=L[i++];
+    call('resSubmit',[PIN,it.tree,it.files,it.meta],function(){ok++;obDel(it.uuid);try{localStorage.removeItem(it.draft)}catch(e){}RS=null;nx()},function(m){if(obIsNet(m)){OB.busy=0;obBadge();return}nx()})})()})}
+function toast(t){var d=document.createElement('div');d.textContent=t;d.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1D2B22;color:#fff;padding:10px 16px;border-radius:12px;z-index:98;font-size:14px;max-width:90%';document.body.appendChild(d);setTimeout(function(){d.remove()},4500)}
+window.addEventListener('online',function(){obFlush(false)});
+
+/* ===== إرسال إشعار (الإدارة) ===== */
+function openPush(){show('s-push');window.scrollTo(0,0);$('puMsg').innerHTML='';puHist()}
+function puSend(){var t=$('puT').value.trim(),b=$('puB').value.trim(),l=$('puL').value.trim(),a=$('puA').value;
+  if(!t||!b){$('puMsg').innerHTML='<div class="err">اكتب العنوان والرسالة</div>';return}
+  if(!confirm('هيتبعت إشعار لـ «'+$('puA').selectedOptions[0].text+'». متأكد؟'))return;
+  $('puMsg').innerHTML='<div class="msg">جاري الإرسال…</div>';
+  call('pushSendAdmin',[PIN,t,b,l,a],function(d){$('puMsg').innerHTML='<div class="msg" style="color:var(--g);font-weight:700">✅ اتبعت لـ '+d.sent+' جهاز'+(d.failed?' — '+d.failed+' جهاز ما وصلهوش (اتشال من القايمة)':'')+'</div>';$('puT').value='';$('puB').value='';$('puL').value='';puHist()},
+   function(m){$('puMsg').innerHTML='<div class="err">'+esc(/غير معروف/.test(m)?'محتاج تحديث السيرفر (pushSendAdmin)':m)+'</div>'})}
+function puHist(){$('puH').innerHTML='<div class="spin">جاري التحميل…</div>';
+  call('pushStats',[PIN],function(d){$('puC').innerHTML='📱 الأجهزة المشتركة: <b>'+d.donors+'</b> متبرع — <b>'+d.team+'</b> من الفريق';
+    $('puH').innerHTML=d.log.length?d.log.map(function(x){return '<div class="rc" style="padding:8px 0;border-top:1px solid var(--line)"><b>'+esc(x.title)+'</b> <span class="badge">'+esc(x.aud)+'</span><div class="msg" style="text-align:right;margin:2px 0">'+esc(x.body)+'</div><small class="msg">'+esc(x.dt)+' — '+esc(x.by)+' — وصل لـ '+x.sent+' جهاز</small></div>'}).join(''):'<div class="msg">لسه مفيش إشعارات اتبعتت</div>'},
+   function(m){$('puH').innerHTML='<div class="err">'+esc(m)+'</div>'})}
 (function(){var p=load('ansar_pin');if(p)doLogin(p);else show('s-login')})();
 /* ===== ساعدني ===== */
 /* كل موضوع: id (نفس «معرّف_الموضوع» في تاب فيديوهات_المساعدة)، العنوان، الأدوار (all / admin / sys / res / dist)، الخطوات، ونصيحة */
@@ -1352,5 +1444,6 @@ HELP.push({id:'score',t:'التقييم الإلكتروني (الكود الم�
   'القرار النهائي للإدارة دايماً — كود «د» معناه مرشح للاستبعاد بس، مش استبعاد.'],
   tip:'الأوزان والحدود في تاب «إعدادات_التقييم» في الشيت، وبتتعدل من غير كود. التفعيل من نفس التاب (مفعّل_للباحثين / يظهر_في_المراجعة).'});
 </script>
+<script src="/pwa.js" defer onload="appDraw()"></script>
 </body>
 </html>

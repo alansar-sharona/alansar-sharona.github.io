@@ -121,15 +121,17 @@ function helpVideos(pin) {
  * ما تكتبش في الوصف رقم قومي ولا PIN ولا مفتاح.
  */
 function notify_(type, desc, user, recId, needsAck) {
-  var lock = LockService.getScriptLock();
+  var id, lock = LockService.getScriptLock();
   try { lock.waitLock(10000); } catch (e) {}
   try {
     var sh = nxSheet_(NX.T_NOTIF, NX_NOTIF_HDR);
-    var id = 'N' + Utilities.formatDate(new Date(), 'Africa/Cairo', 'yyMMddHHmmss') + Math.floor(Math.random() * 90 + 10);
+    id = 'N' + Utilities.formatDate(new Date(), 'Africa/Cairo', 'yyMMddHHmmss') + Math.floor(Math.random() * 90 + 10);
     sh.appendRow([id, new Date(), String(type), String(desc || '').slice(0, 500), String(user || ''), String(recId == null ? '' : recId), needsAck ? 'نعم' : 'لا', '']);
     if (sh.getLastRow() > NX.KEEP + 200) nxArchive_(sh);
-    return id;
   } finally { try { lock.releaseLock(); } catch (e) {} }
+  // نفس الإشعار بيوصل على موبايلات الإدارة (F_Push.gs) — من غير ما يوقّع حاجة لو الإشعارات مش متجهزة
+  if (typeof pushSafe_ === 'function') pushSafe_('🔔 ' + String(type), String(desc || '').slice(0, 200), 'https://alansar-sharona.github.io/app/', 'admins');
+  return id;
 }
 function nxArchive_(sh) {
   var n = sh.getLastRow() - 1 - NX.KEEP;
