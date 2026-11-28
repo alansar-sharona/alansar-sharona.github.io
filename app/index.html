@@ -556,7 +556,7 @@ function rDraw(){if(!RS)return;var q=$('rQ').value.trim(),f=(document.querySelec
 function rDel(id){var c=$('le'+id);if(!confirm('حذف البحث ده نهائي من كوبو؟ استخدمها للبحث المكرر أو اللي اتبعت غلط بس.'))return;
   c.innerHTML='<div class="msg">جاري الحذف…</div>';
   call('resDelete',[PIN,id],function(){RS=RS.filter(function(x){return x.id!==id});rDraw()},function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'})}
-/* ===== مساعدات المراجعة: القيم، والناقص، وملخص التغييرات =====
+/* ===== مساعدات المراجعة: القيم، والناقص، وملخص التغييرات ===== */
 var RV={};
 function rvLab(list,code){var L=RSPEC.choices[list]||[];return String(code==null?'':code).split(' ').filter(String).map(function(c){var x=L.filter(function(y){return y[0]===c})[0];return x?x[1]:c}).join('، ')}
 function rvVal(f,v){if(v==null||v==='')return '';v=String(v);
