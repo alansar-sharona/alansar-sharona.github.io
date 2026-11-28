@@ -144,3 +144,11 @@ function pushStats(pin) {
   return { donors: d, team: t, log: log };
 }
 function setupPush() { puSheet_(PU.T_DEV, PU.DEV_HDR); puSheet_(PU.T_LOG, PU.LOG_HDR); return 'تم: تاب أجهزة_الإشعارات وسجل_الإشعارات_المرسلة'; }
+/** تجربة مفتاح الإشعارات من المحرر (Run) — بيتأكد إن FCM_SA شغال من غير ما يبعت حاجة لحد */
+function pushCheck() {
+  CacheService.getScriptCache().remove('fcm_tok');
+  var sa = puCfg_(), tok = puToken_();
+  var msg = 'مفتاح الإشعارات شغال ✔ — مشروع ' + sa.project_id + ' — الأجهزة المسجلة: ' + puTargets_('all').length;
+  Logger.log(msg);
+  return msg;
+}
