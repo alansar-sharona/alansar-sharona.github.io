@@ -2,7 +2,7 @@
  * (هـ) مراجعة الأبحاث — عرض البحث كامل، تعديله، إرجاعه للباحث، وملخص التغييرات عن ملف الأسرة
  * محتاج: الرمز.gs (kobo_ و user_ و table_ و lab_ و normAddr_) + ملفات (أ) و(ج) و(د)
  *
- * دوال doPost: resGet, resEdit, resReturn, resResubmit, resPhoto, resEditFull
+ * دوال doPost: resGet, resEdit, resReturn, resResubmit, resPhoto, resEditFull, resPrefillAll
  * حالات البحث في كوبو:
  *   من غير حالة  → مستني اعتماد
  *   on_hold      → مرجّع للباحث للتعديل (الملاحظة في تاب ملاحظات_الأبحاث)
@@ -27,6 +27,9 @@ function resFields_(sub) {
   var rg = g('g_file/region'), zn = g('g_file/zone'), bs = g('g_house/bstate');
   var apl = lab_('appliances', g('g_house/appliances')), aplO = g('g_house/appliances_other');
   var oblig = ' ' + g('g_income/oblig') + ' ';
+  // دخل الأسرة كلها = مصادر الدخل + رواتب الأفراد (إلا الفرد اللي له ملف/بحث منفصل — رقمه القومي في «الأقارب اللي ليهم أبحاث»)
+  var incSum = ['salary', 'insur', 'shoun', 'karima', 'orphan', 'nafaqa', 'takaful', 'daily', 'relatives', 'other'].reduce(function (a, k) { return a + inc(k); }, 0);
+  var memSal = resMemSal_(sub), oblSum = Number(g('g_income/obl_total')) || 0;
   var F = {
     'اسم_رب_الأسرة': g('g_family/name'), 'الرقم_القومي': g('g_family/nid') ? "'" + g('g_family/nid') : '', 'الهاتف': g('g_family/phone') ? "'" + g('g_family/phone') : '',
     'هاتف_بديل': g('g_family/alt_phone') ? "'" + g('g_family/alt_phone') : '', 'صاحب_الهاتف_البديل': g('g_family/alt_owner'), 'عمل_رب_الأسرة': job,
@@ -40,7 +43,7 @@ function resFields_(sub) {
     'كماليات_السكن': [apl, aplO].filter(String).join(' — '),
     'راتب_معاش': inc('salary') || '', 'تأمينات': inc('insur') || '', 'مساعدات_الشئون': inc('shoun') || '', 'حياة_كريمة': inc('karima') || '', 'أيتام_أرامل': inc('orphan') || '',
     'نفقة': inc('nafaqa') || '', 'تكافل_وكرامة': inc('takaful') || '', 'دخل_آخر': (inc('daily') + inc('relatives') + inc('other')) || '',
-    'مجموع_الإيرادات': g('g_income/inc_total'), 'مجموع_الالتزامات': g('g_income/obl_total'), 'صافي_الدخل': g('g_income/net'),
+    'مجموع_الإيرادات': (incSum + memSal) || g('g_income/inc_total'), 'مجموع_الالتزامات': g('g_income/obl_total'), 'صافي_الدخل': (incSum + memSal) ? (incSum + memSal - oblSum) : g('g_income/net'),
     'أصول': [lab_('assets', g('g_income/assets')), g('g_income/assets_desc')].filter(String).join(' — '),
     'التصنيف': lab_('grade', g('g_result/grade')), 'حالة_الملف': st, 'مصدر_الترشيح': lab_('referral', g('g_file/referral')), 'اسم_المرشح': g('g_file/referrer'),
     'رقم_ملف_قريب_مسجل': relativesText_(sub), 'تاريخ_آخر_بحث': g('g_file/research_date'), 'موعد_البحث_القادم': g('g_result/next_research'), 'تاريخ_آخر_تحديث': fmt_(now_(), 'yyyy-MM-dd'),
@@ -50,6 +53,30 @@ function resFields_(sub) {
   };
   if (F['عدد_الأيتام'] === null || F['عدد_الأيتام'] === undefined) F['عدد_الأيتام'] = '';
   return F;
+}
+
+/** رواتب أفراد الأسرة اللي مالهمش ملف منفصل */
+function resMemSal_(sub) {
+  var rel = (sub['relatives_r'] || []).map(function (r) { return norm_(r['relatives_r/rel_id'] || '').replace(/\D/g, ''); }).filter(String), t = 0;
+  (sub['members_r'] || []).forEach(function (m) {
+    var id = norm_(m['members_r/m_nid'] || '').replace(/\D/g, '');
+    if (id && rel.indexOf(id) >= 0) return;
+    t += Number(norm_(m['members_r/m_salary'] || '')) || 0;
+  });
+  return t;
+}
+
+/** بيانات كل الأسر للبحث من غير نت (نفس اللي resPrefill بيرجّعه لكل أسرة) — للباحثين والإدارة */
+function resPrefillAll(pin) {
+  resUser_(pin);
+  var t = table_('الأسر'), I = t.idx, out = [];
+  t.rows.forEach(function (r) {
+    var fn = String(r[I['رقم_الملف']]).trim();
+    if (!fn || ('حالة_الملف' in I && String(r[I['حالة_الملف']]).trim() === 'محذوف')) return;
+    var p = famRowObj_(r, I);
+    out.push({ fn: fn, nid: p.nid || '', ctx: { fn: fn, old_name: p.name, old_region: p.region, old_members: p.members, old_nid4: p.nid4, old_note: p.note, research_type: 'update' }, pf: p });
+  });
+  return out;
 }
 
 /** كود التقييم الإلكتروني لكل بحث في القايمة — من غير ما يوقّع القايمة لو حصل خطأ */

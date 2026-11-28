@@ -209,6 +209,9 @@ footer a{color:var(--gold2)}
 .appbar button{border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:800;font-size:15px;cursor:pointer;background:var(--g);color:#fff}
 .appbar button.o{background:#fff;color:var(--g);border:2px solid var(--g)}
 .appbar .apm{width:100%;font-size:13px;color:var(--mut)}
+/* جوه تطبيق المتبرعين المتسطّب: زرار دخول الفريق مستخبي (بيفضل ظاهر في الموقع من المتصفح) */
+@media (display-mode: standalone){.ntop .staff{display:none!important}}
+html.inapp .ntop .staff{display:none!important}
 </style>
 </head>
 <body>
@@ -589,6 +592,7 @@ function fbSend(e){e.preventDefault();var out=document.getElementById('fbOut'),b
   L.forEach(function(a){var t=document.querySelector(a.getAttribute('href'));if(t)io.observe(t)})})();
 </script>
 <script>
+if(window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches)document.documentElement.classList.add('inapp');
 window.ANSAR_PWA={sw:'/sw.js',scope:'/',kind:'donor',api:'https://script.google.com/macros/s/AKfycbw4BoO-LLl3CN501okOdRfNuyMJgorbOII_vWyhRJtbsuKvr_4on3gBV_cjD8GcIGcZ3Q/exec',onChange:function(){drawAppBar()}};
 function drawAppBar(){var A=window.ANSAR_APP;if(!A)return;var b=[],st=A.pushState();
   if(A.canInstall())b.push('<button onclick="ANSAR_APP.install()">📲 ضيف التطبيق على موبايلك</button>');
