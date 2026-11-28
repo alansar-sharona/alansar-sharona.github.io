@@ -30,7 +30,8 @@ function koboFlat_(sub) {
   var o = {};
   Object.keys(sub || {}).forEach(function (k) {
     var v = sub[k], n = k.split('/').pop();
-    if (Array.isArray(v)) o[n] = v.map(function (row) { var r = {}; Object.keys(row).forEach(function (kk) { r[kk.split('/').pop()] = row[kk]; }); return r; });
+    if (k.charAt(0) === '_') { o[n] = v; return; }          // _geolocation و_attachments وغيرهم — مش صفوف أسئلة
+    if (Array.isArray(v)) o[n] = v.map(function (row) { var r = {}; if (row && typeof row === 'object') Object.keys(row).forEach(function (kk) { r[kk.split('/').pop()] = row[kk]; }); return r; });
     else o[n] = v;
   });
   return o;
