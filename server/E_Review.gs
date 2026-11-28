@@ -221,6 +221,17 @@ function resEditFull(pin, id, tree, files, meta) {
   return { ok: true, id: Number(id), kept: keep, by: u.name };
 }
 
+/** الاعتماد/الرفض + إشعار للباحث صاحب البحث (المنصة بتنادي دي بدل resDecide) */
+function resDecideN(pin, id, decision, note, newFn) {
+  var sub = null; try { sub = rvSub_(id); } catch (e) {}
+  var r = resDecide(pin, id, decision, note, newFn);
+  if (sub && typeof pushSafe_ === 'function') {
+    var by = String(sub['g_file/researcher'] || ''), nm = String(sub['g_family/name'] || '');
+    if (by) pushSafe_(decision === 'reject' ? '✖ بحث اترفض' : '✅ بحثك اتعتمد', nm + (r && r.fn ? ' — ملف ' + r.fn : ''), PU.SITE + '/app/', 'name:' + by);
+  }
+  return r;
+}
+
 /** إعداد مرة واحدة لكل الأجزاء الجديدة (أ، ب، ج، د، هـ) — بيتشغّل من المحرر (Run) */
 function setupAllNew() {
   var log = [];

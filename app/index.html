@@ -663,13 +663,13 @@ function rvFormSave(){if(RF.busy)return;
 function rvMsg(h){var c=$('rfErr');if(c)c.innerHTML=h}
 function rvDone(icon,title,msg){RS=null;$('rfBody').innerHTML='<div class="card" style="text-align:center"><div style="font-size:48px">'+icon+'</div><h2 style="color:var(--g)">'+esc(title)+'</h2><div class="msg">'+msg+'</div><button class="btn" onclick="openRes()">📋 الأبحاث</button></div>';window.scrollTo(0,0)}
 function rvApprove(){var d=RF.rv,go=function(nf){rvMsg('<span class="msg">جاري الاعتماد وتحديث ملف الأسرة…</span>');
-    call('resDecide',[PIN,d.id,'approve','',nf],function(x){rvDone('✅','البحث اتعتمد',x.isNew?'اتعمل ملف جديد رقم <b>'+esc(x.fn)+'</b>':'ملف '+esc(x.fn)+' اتحدّث ('+x.changes+' تعديل)')},function(m){rvMsg(esc(m))})};
+    call('resDecideN',[PIN,d.id,'approve','',nf],function(x){rvDone('✅','البحث اتعتمد',x.isNew?'اتعمل ملف جديد رقم <b>'+esc(x.fn)+'</b>':'ملف '+esc(x.fn)+' اتحدّث ('+x.changes+' تعديل)')},function(m){rvMsg(esc(m))})};
   if(d.isNew){rvMsg('<span class="msg">جاري تجهيز رقم الملف…</span>');
     call('resNextFn',[PIN,RF.V.region||''],function(x){var n=prompt('حالة جديدة — ده رقم الملف التالي في المنطقة.\nتقدر تغيّره لو عايز ترتيب معين (5 أرقام)، وبعدين دوس OK للاعتماد:',x.fn);
       if(n==null){rvMsg('');return}go(n.replace(/[٠-٩]/g,function(c){return '٠١٢٣٤٥٦٧٨٩'.indexOf(c)}).replace(/\D/g,''))},function(m){rvMsg(esc(m))});return}
   if(!confirm('اعتماد البحث ده؟ بياناته هتتكتب في ملف الأسرة '+d.fam.fn+'.'))return;go('')}
 function rvReject(){var d=RF.rv;if(!confirm('رفض البحث ده؟'))return;rvMsg('<span class="msg">جاري الرفض…</span>');
-  call('resDecide',[PIN,d.id,'reject','',''],function(){rvDone('✖','البحث اترفض','')},function(m){rvMsg(esc(m))})}
+  call('resDecideN',[PIN,d.id,'reject','',''],function(){rvDone('✖','البحث اترفض','')},function(m){rvMsg(esc(m))})}
 function rvDelete(){var d=RF.rv;if(!confirm('حذف البحث ده نهائي من كوبو؟ استخدمها للبحث المكرر أو اللي اتبعت غلط بس.'))return;rvMsg('<span class="msg">جاري الحذف…</span>');
   call('resDelete',[PIN,d.id],function(){rvDone('🗑','البحث اتحذف','')},function(m){rvMsg(esc(m))})}
 function rvBack(id){var note=prompt('إرجاع البحث للباحث — اكتب المطلوب يعدّله إيه:');if(note==null)return;note=note.trim();if(!note){alert('لازم تكتب الملاحظة');return}
@@ -912,7 +912,7 @@ function rDecide(id,dec){var r=RS.filter(function(x){return x.id===id})[0],c=$('
   rGo(id,dec,'')}
 function rGo(id,dec,nf){var r=RS.filter(function(x){return x.id===id})[0],c=$('le'+id);
   c.innerHTML='<div class="msg">جاري '+(dec==='approve'?'الاعتماد وتحديث ملف الأسرة':'الرفض')+'…</div>';
-  call('resDecide',[PIN,id,dec,'',nf],function(d){r.vs=d.rejected?'validation_status_not_approved':'validation_status_approved';if(d.fn)r.fn=d.fn;delete RV[id];rDraw();
+  call('resDecideN',[PIN,id,dec,'',nf],function(d){r.vs=d.rejected?'validation_status_not_approved':'validation_status_approved';if(d.fn)r.fn=d.fn;delete RV[id];rDraw();
     var cc=$('le'+id)||$('rMsg');if(cc)cc.innerHTML='<div class="msg" style="color:var(--g);font-weight:700">'+(d.rejected?'✖ اترفض':'✅ اتعتمد — '+(d.isNew?'اتعمل ملف جديد رقم '+esc(d.fn):'ملف '+esc(d.fn)+' اتحدّث ('+d.changes+' تعديل)'))+'</div>'},
    function(m){c.innerHTML='<div class="err">'+esc(m)+'</div>'})}
 function rEdit(id){var b=$('le'+id);if(b.innerHTML){b.innerHTML='';return}

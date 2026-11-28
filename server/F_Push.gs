@@ -143,7 +143,74 @@ function pushStats(pin) {
   }
   return { donors: d, team: t, log: log };
 }
-function setupPush() { puSheet_(PU.T_DEV, PU.DEV_HDR); puSheet_(PU.T_LOG, PU.LOG_HDR); return 'تم: تاب أجهزة_الإشعارات وسجل_الإشعارات_المرسلة'; }
+function setupPush() {
+  puSheet_(PU.T_DEV, PU.DEV_HDR); puSheet_(PU.T_LOG, PU.LOG_HDR);
+  var has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'puScan'; });
+  if (!has) ScriptApp.newTrigger('puScan').timeBased().everyMinutes(15).create();
+  puScan();   // أول مرة بيحفظ الوضع الحالي بس — من غير إشعارات
+  return 'تم: تاب أجهزة_الإشعارات وسجل_الإشعارات_المرسلة + متابعة الصفحة العامة كل 15 دقيقة';
+}
+
+/* ---------- إشعارات المتبرعين التلقائية ----------
+ * كل 15 دقيقة بيقارن الصفحة العامة باللي كانت عليه، ويبعت للمتبرعين لوحده:
+ *   عطاء جديد بدأ — حصاد عطاء خلص — صور جديدة لعطاء — بوست فيسبوك جديد — ملخص شهري أول كل شهر
+ * أول تشغيل بيحفظ الوضع الحالي بس، عشان ما يبعتش قديم. */
+var PU_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+function puAuto_(title, body, link) {
+  var r = pushSafe_(title, body, PU.SITE + '/' + (link || ''), 'donors');
+  try { puSheet_(PU.T_LOG, PU.LOG_HDR).appendRow([now_(), 'تلقائي', PU.AUD.donors, title, body, PU.SITE + '/' + (link || ''), r.sent || 0, r.failed || 0]); } catch (e) {}
+  return r;
+}
+function puScan() {
+  var lock = LockService.getScriptLock(); if (!lock.tryLock(5000)) return 'مشغول';
+  try {
+    var P = PropertiesService.getScriptProperties(), raw = P.getProperty('PU_SNAP'), old = raw ? JSON.parse(raw) : null, out = [], team = [];
+    var snap = { acts: {}, fb: [], month: old && old.month ? old.month : fmt_(now_(), 'yyyy-MM') };
+    // العطاءات من نفس بيانات الصفحة العامة
+    var L = []; try { CacheService.getScriptCache().remove('pubStats'); L = (pubStats() || {}).list || []; } catch (e) {}
+    L.forEach(function (a) {
+      var k = String(a.name || '').trim(); if (!k) return;
+      var cur = { live: !!a.live, done: !!a.done, media: (a.media || []).length, fam: a.fam || 0 };
+      snap.acts[k] = cur;
+      if (!old) return;
+      var was = old.acts[k];
+      if (cur.live && (!was || !was.live) && !cur.done) {
+        out.push(['🤲 بدأنا: ' + k, 'عطاء جديد بيتوزّع دلوقتي على أهالينا في شارونة — شارك في الخير', '#donate']);
+        team.push(['🎁 عطاء اتفتح للتوزيع', k + ' — ادخل على «توزيع العطاءات» من المنصة', '']);
+      }
+      if (cur.done && was && !was.done) {
+        out.push(['✅ حصاد: ' + k, 'الحمد لله — العطاء وصل لـ ' + (cur.fam || 'أهالينا من') + ' أسرة. جزاكم الله خيرًا على دعمكم', '#live']);
+        team.push(['✅ عطاء خلص', k + ' — وصل لـ ' + (cur.fam || 0) + ' أسرة. تسلم إيديكم 💚', '']);
+      }
+      if (was && cur.media > (was.media || 0)) out.push(['📷 صور جديدة: ' + k, 'شوف صور التوزيع على صفحة الجمعية', '#live']);
+    });
+    // بوستات فيسبوك اللي اتضافت للصفحة العامة
+    try { CacheService.getScriptCache().remove('pubInfo'); var fb = (pubInfo() || {}).fb || []; } catch (e) { fb = []; }
+    snap.fb = fb.map(function (x) { return x[0]; });
+    if (old) fb.forEach(function (x) { if ((old.fb || []).indexOf(x[0]) < 0) out.push(['📘 جديد على صفحة الجمعية', x[1] || 'بوست جديد من جمعية الأنصار بشارونة', '#news']); });
+    // ملخص شهري — أول يوم في الشهر بعد الساعة 10 الصبح
+    var n = now_(), m = fmt_(n, 'yyyy-MM');
+    if (old && snap.month !== m && Number(fmt_(n, 'H')) >= 10) {
+      var s = puMonth_(snap.month);
+      if (s.fam) out.push(['📊 حصاد شهر ' + s.label, 'وصل العطاء لـ ' + s.fam + ' أسرة في ' + s.n + ' تسليم خلال شهر ' + s.label + '. شكرًا لكل اللي ساهم 💚', '#live']);
+      snap.month = m;
+    }
+    out.slice(0, 5).forEach(function (x) { puAuto_(x[0], x[1], x[2]); });
+    team.slice(0, 5).forEach(function (x) { pushSafe_(x[0], x[1], PU.SITE + '/app/', 'team'); });
+    P.setProperty('PU_SNAP', JSON.stringify(snap));
+    return old ? 'اتبعت ' + Math.min(out.length, 5) + ' إشعار' : 'أول تشغيل — اتحفظ الوضع الحالي';
+  } finally { lock.releaseLock(); }
+}
+/** عدد الأسر والتسليمات في شهر (yyyy-MM) */
+function puMonth_(ym) {
+  var d = table_('التسليمات'), cS = col_(d, 'الحالة'), cF = col_(d, 'رقم_الملف'), cT = col_(d, 'التاريخ'), fam = {}, n = 0;
+  d.rows.forEach(function (r) {
+    if (String(r[cS]).trim() !== 'تم التسليم' || !(r[cT] instanceof Date) || fmt_(r[cT], 'yyyy-MM') !== ym) return;
+    n++; fam[String(r[cF]).trim()] = 1;
+  });
+  var p = ym.split('-');
+  return { fam: Object.keys(fam).length, n: n, label: PU_MONTHS[Number(p[1]) - 1] + ' ' + p[0] };
+}
 /** تجربة مفتاح الإشعارات من المحرر (Run) — بيتأكد إن FCM_SA شغال من غير ما يبعت حاجة لحد */
 function pushCheck() {
   CacheService.getScriptCache().remove('fcm_tok');
